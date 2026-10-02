@@ -1,0 +1,51 @@
+# .github/workflows/build-dylib.yml
+name: build-cheat-dylib
+
+on:
+  push:
+    paths:
+      - 'project/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Compile cheat.dylib
+        run: |
+          cd project
+          xcrun -sdk iphoneos clang \
+            -arch arm64 \
+            -dynamiclib \
+            -isysroot $(xcrun -sdk iphoneos --show-sdk-path) \
+            -framework UIKit \
+            -framework Foundation \
+            -lm \
+            -O2 \
+            -Wall \
+            -Wno-unused-parameter \
+            -mios-version-min=16.0 \
+            -o cheat.dylib cheat.c
+          echo "[+] Compile done"
+
+      - name: Verify binary
+        run: |
+          cd project
+          file cheat.dylib
+          otool -L cheat.dylib
+          otool -h cheat.dylib
+          ls -lh cheat.dylib
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cheat-dylib-arm64
+          path: project/cheat.dylib
+          retention-days: 7

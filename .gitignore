@@ -1,0 +1,6 @@
+# IPA gốc + artifact build — không push lên repo
+*.ipa
+project/cheat.dylib
+project/output.txt
+aov_extracted/
+dump_out/
