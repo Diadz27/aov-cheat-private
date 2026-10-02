@@ -33,19 +33,36 @@ jobs:
             -Wno-unused-parameter \
             -mios-version-min=16.0 \
             -o cheat.dylib cheat.c
+          xcrun -sdk iphoneos clang \
+            -arch arm64 \
+            -dynamiclib \
+            -isysroot $(xcrun -sdk iphoneos --show-sdk-path) \
+            -framework Foundation \
+            -O2 \
+            -Wall \
+            -Wno-unused-parameter \
+            -mios-version-min=16.0 \
+            -o meta_extract.dylib meta_extract.c
           echo "[+] Compile done"
-
       - name: Verify binary
         run: |
           cd project
-          file cheat.dylib
+          file cheat.dylib meta_extract.dylib
           otool -L cheat.dylib
+          otool -L meta_extract.dylib
           otool -h cheat.dylib
-          ls -lh cheat.dylib
+          ls -lh cheat.dylib meta_extract.dylib
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: cheat-dylib-arm64
           path: project/cheat.dylib
+          retention-days: 7
+
+      - name: Upload extractor artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: meta-extract-dylib-arm64
+          path: project/meta_extract.dylib
           retention-days: 7
