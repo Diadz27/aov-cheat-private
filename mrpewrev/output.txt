@@ -1,0 +1,14 @@
+[TASK]: Mổ QH.framework
+[STATUS]: SUCCESS — phân tích hoàn tất, verdict: QH KHÔNG PHẢI cheat engine
+[QH_SIZE]: 90496 bytes
+[QH_MAGIC]: 0xFEEDFACF (ARM64 thin, NCMDS=20)
+[STRINGS_TOTAL]: 303 (min_len=5)
+[STRINGS_RELEVANT]: 5 — toàn ObjC boilerplate (_OBJC_CLASS_$_UIViewController, setRootViewController:, v32@?0@"NSData"...). 0 strings game.
+[LOAD_COMMANDS]: id @rpath/QH.framework/QH; links UIKit, Foundation, libobjc, libSystem, CoreFoundation. 0 binds tới UnityFramework/game.
+[IMPORTS]: 43 undefined — UIWindow/UIAlert/UILabel/NSURLSession/NSJSONSerialization/objc_msgSend/dispatch. KHÔNG CÓ: vm_read/vm_write/task_for_pid/dlopen/dlsym/mprotect/pthread/il2cpp/Unity.
+[TOP_RELEVANT_STRINGS]: (5 dòng trên — hết, không có gì thêm)
+[CONSTANTS_COUNT]: 264 (ObjC metadata addresses trong binary 90KB, không pattern il2cpp offset)
+[DISASM]: __text 0x162c bytes / 1419 insns, codegen -O0 (UI layout float math: fmul/fadd/fcmp vòng lặp). 0 svc #0x80 (không syscall lẩn). BL toàn nội bộ.
+[VERDICT]: QH = mod-menu overlay (UIWindow alert + UILabel) + HTTP client (NSURLSession + JSON = check key/update). Không đọc/ghi được bộ nhớ game: thiếu mọi API cần thiết, không binds cross-image (ASLR làm mọi địa chỉ cứng vô dụng), không svc lẩn, __text quá nhỏ. Map hack nằm ở byte patch trong UnityFramework (cùng size, chờ bindiff).
+[FILES]: mrpewrev/QH_all_strings.txt, QH_relevant_strings.txt, QH_constants.txt, QH_load_commands.txt, QH_imports.txt
+[NEXT]: bindiff UnityFramework stock-vs-mod 1.64 (cùng size 240887264) → định vị patch → mechanism + offset

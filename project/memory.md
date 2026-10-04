@@ -23,6 +23,14 @@ ESign non-jailbreak. Lock version 1.64.
 3. Luôn ghi marker file (sống/chết đều có dấu) — không phụ thuộc log.
 4. Commit format: code + workflow + inventory cùng commit, push ngay khi collaborator mở.
 5. IPA mod và trắng khác version (1.63 vs 1.64) thì diff vô nghĩa — lock 1 version từ đầu.
+6. SỐ LIỆU CHỈ TỪ MÁY: vụ "226MB" nhẩm từ 226248785 bytes (thực 215.8MB). Cấm nhẩm mọi con số.
+7. PIVOT 2026-10-03: stock 1.64 văng cả khi trắng (dylib vô can) → dùng MOD 1.64
+   (chạy được, hack thật) làm base. Không patch stock nữa.
+8. QH = menu+network (43 imports UI/HTTP, 0 API chạm game, 0 svc, __text 5.6KB).
+   Shopee dylib = rác chết (không ai nạp). Map hack = 4 patch __TEXT trong
+   UnityFramework (mrpewrev/patches_164.txt). Không tốn thêm giờ vào 2 file này.
+9. Metadata mod = stock (cùng 41278340B, lệch 14B header) → hack không đụng metadata.
+   Stock văng không phải do metadata.
 
 ## Quyết định đang hiệu lực
 - Lock 1.64. ACE escalate theo lunar (stealth → RE anogs/anort → patch tĩnh).
@@ -31,8 +39,9 @@ ESign non-jailbreak. Lock version 1.64.
 
 ## Hàng đợi
 - [x] meta_extract v2 (os_log/heartbeat/MIN-copy/marker/region-cap)
-- [ ] push → Actions xanh → verify artifact
-- [ ] user repack + ESign + run + pull global-metadata.decrypted.dat
+- [x] push 7562627 → Actions xanh → v2 dylib 66936B ARM64 verify OK
+- [x] repack mod164 v2 (dylib 66936B trong Frameworks, LC @rpath OK, IPA 226MB)
+- [ ] user ESign + run + log [META] + pull global-metadata.decrypted.dat
 - [ ] Il2CppDumper → dump.cs → mining offset → config.h 1.64
 - [ ] cheat.c 1.64 + antiban cơ bản → test → iterate
 - [ ] aimbot/macro + antiban nâng cao (conditional)
