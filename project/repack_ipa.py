@@ -127,7 +127,8 @@ def inject_dylib(binary_path, dylib_install):
     return True
 
 
-def repack(input_ipa, dylib_path, output_ipa, use_launcher=False):
+def repack(input_ipa, dylib_path, output_ipa, use_launcher=False,
+           map_patches=False):
     tmp = tempfile.mkdtemp()
     try:
         print(f'[*] Extracting {input_ipa}')
@@ -162,10 +163,25 @@ def repack(input_ipa, dylib_path, output_ipa, use_launcher=False):
         if not inject_dylib(binary, dylib_install):
             return False
 
+        if map_patches:
+            uf_path = os.path.join(app_dir, 'Frameworks',
+                                   'UnityFramework.framework', 'UnityFramework')
+            if os.path.isfile(uf_path):
+                print('[*] Applying map hack patches...')
+                from apply_patches import apply_patches as _patch
+                if not _patch(uf_path):
+                    print('[!] Patch FAILED — aborting repack')
+                    return False
+                print('[+] Patches applied to UnityFramework')
+            else:
+                print('[!] UnityFramework not found — skip patches')
+
         print(f'[*] Repacking to {output_ipa}')
         with zipfile.ZipFile(output_ipa, 'w', zipfile.ZIP_DEFLATED) as z:
             for root, _, files in os.walk(tmp):
                 for file in files:
+                    if file.endswith('.bak'):
+                        continue  # backup patcher, không đóng gói
                     fp = os.path.join(root, file)
                     z.write(fp, os.path.relpath(fp, tmp))
 
@@ -177,8 +193,9 @@ def repack(input_ipa, dylib_path, output_ipa, use_launcher=False):
 
 if __name__ == '__main__':
     if len(sys.argv) < 4:
-        print('usage: python3 repack_ipa.py input.ipa cheat.dylib output.ipa [--launcher]')
+        print('usage: python3 repack_ipa.py input.ipa cheat.dylib output.ipa [--launcher] [--map-patches]')
         sys.exit(1)
     ok = repack(sys.argv[1], sys.argv[2], sys.argv[3],
-                use_launcher='--launcher' in sys.argv[4:])
+                use_launcher='--launcher' in sys.argv[4:],
+                map_patches='--map-patches' in sys.argv[4:])
     sys.exit(0 if ok else 1)

@@ -31,6 +31,10 @@ ESign non-jailbreak. Lock version 1.64.
    UnityFramework (mrpewrev/patches_164.txt). Không tốn thêm giờ vào 2 file này.
 9. Metadata mod = stock (cùng 41278340B, lệch 14B header) → hack không đụng metadata.
    Stock văng không phải do metadata.
+10. L8: CẤM gõ tay bytes vào code — vụ P1 OLD (a20016aa sai vs f60302aa đúng) và P2 OLD.
+    apply_patches.py đọc bảng patches_164.txt lúc chạy. Mọi bytes đều từ máy.
+11. .bak lọt vào IPA lần đầu → repack skip *.bak khi zip. stock164-patched.ipa
+    226248868B: 4/4 patch = NEW bytes verify trong IPA cuối, 0 .bak, 570 entries.
 
 ## Quyết định đang hiệu lực
 - Lock 1.64. ACE escalate theo lunar (stealth → RE anogs/anort → patch tĩnh).
