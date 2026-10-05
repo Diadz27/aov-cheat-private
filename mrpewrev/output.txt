@@ -137,3 +137,46 @@ Tóm tắt: magic KHÔNG TỒN TẠI trong RAM. Nhánh magic-hunt đóng sổ. C
 [DYLIB_SIZE]: chờ Actions log (file/otool/ls trong step compile)
 [ARTIFACT]: meta-extract-v5-dylib-arm64 (block riêng, giữ nguyên block v4)
 [NEXT]: user tải v5 → drop vào đây → tao repack mod base → 1 trận → log FIELD về
+
+---
+[PHIÊN]: dumpcs-esp-chain-01 — ngày 2026-10-05. Decrypt metadata + dump.cs + ESP chain,
+  toàn bộ trên PC (user TUYÊN BỐ DỪNG TEST MÁY HẲN — 0 vòng device từ đây).
+[TÓM TẮT]: fork AoV có MetadataDecrypter (XOR 0xA8C72D + 24 group transforms) → port
+  Python → decrypted.dat ver 29 header 0 BAD → Perfare 6.7.46 cho dump.cs 70834105B
+  (bẫy: phải mkdir out trước) → moi + disasm (capstone 5.0.7) ra full ESP chain
+  machine-verified → config.h viết lại + cheat.c scan_heroes thật + mem_probe.
+[NGƯỜI DÙNG NÓI] (nguyên văn):
+- "What did we do so far?"
+- "check again and continue"
+- "what happen?"
+- "hi"
+- "Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed."
+[ĐÃ LÀM]:
+1. Build fork Il2CppDumper-GUI-AoV (dotnet, 0 errors) — GUI nên không chạy headless được.
+2. Port MetadataDecrypter.cs sang h9_decrypt.py, chạy OK: global-metadata.decrypted.dat
+   (magic fab11baf, ver 29, 13/13 section offsets hợp lệ, 0 BAD).
+3. Chạy Perfare 6.7.46 + config no-DummyDll: dump.cs 70834105B, il2cpp.h 135649904B,
+   script.json 173841397B, stringliteral.json 4798948B. DummyDll chết (compressed-int,
+   không cần). Phát hiện bẫy out-dir (2 vòng trắng mới ra).
+4. Mining dump.cs: LActorRoot (pos@0xE0, skill@0x328, value@0x338, config@0x378),
+   LGameActorMgr (HeroActors@0x48, CampsHeroActors@0x90), ActorManager (@0x20),
+   SkillSlot (SkillObj@0xB8), CrypticInt32, COM_PLAYERCAMP (1v2), VInt3 precision 1000.
+5. Disasm verify: ToInt = eor (hp=xor), get_handle ldr+8, GetCampHeroActors array
+   len@0x10/data@0x18, GetAllHeros = return field (không lọc),
+   get_ActiveBattleLogic@0x6E30808, get_actorManager@0x6E6C5C8.
+6. config.h viết lại full verified; cheat.c scan_heroes chain thật + mem_probe;
+   speed/mana/aimbot-write/macro/camera vô hiệu (cấm ghi mù). Check strict identifiers OK.
+[VẤN ĐỀ GẶP]: fork chỉ có GUI (không CLI); Perfare DummyDll crash (bỏ qua được);
+  PoolObjHandle/VInt3/CrypticInt32 offsets âm trong dump (artifact generic/struct —
+  giải quyết bằng disasm hàm shared, ra số thật).
+[ĐÃ GIẢI QUYẾT]: decrypt metadata (xong dứt điểm); dump.cs (có file); ESP chain đủ mắt
+  xích từ battle → từng hero (pos/camp/hp/self) — TĨNH, chờ runtime duy nhất.
+[ĐANG VƯỚNG]:
+1. List._items@0x10/_size@0x18 là STD mscorlib + guard, chưa disasm riêng trên binary này.
+2. Toàn chain CHƯA CHẠY LẦN NÀO trên máy thật (user dừng test). CI xanh chỉ = compile OK.
+3. Skill CD fields + camera W2S để phase 2.
+[NEXT]: (a) push commit này → CI build cheat.dylib; (b) khi user đổi ý test: repack base
+  + đọc log [ESP]; (c) phase 2: SkillSlot full block + Moba_Camera W2S.
+[FILES PHIÊN]: out29/dump.cs + il2cpp.h + script.json + stringliteral.json (TEMP aov164);
+  project/config.h + cheat.c + memory.h (sửa); TEMP scripts: h9_decrypt.py, dumpq.py,
+  disx.py, ccheck.py.

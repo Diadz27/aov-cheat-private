@@ -54,140 +54,151 @@ static char* read_il2cpp_string(uintptr_t ptr) {
     return out;
 }
 
-// ─── HERO DATA ───
+// ─── HERO DATA (verified chain, see config.h) ───
 typedef struct {
     uintptr_t obj_ptr;
-    float x, y, z;
-    float hp, max_hp;
+    float x, z;
+    int32_t hp;
+    uint32_t camp;
+    bool  is_self;
     bool  is_enemy;
     char  name[64];
 } HeroData;
 
-// ─── HERO SCANNER ───
+static uint32_t g_self_camp = 0;
+static float    g_self_x = 0, g_self_z = 0;
+static bool     g_self_known = false;
+
+typedef void *(*GameStaticFn)(void);
+
+// battle = get_ActiveBattleLogic() — static, no args, null when no battle
+static uintptr_t esp_active_battle(void) {
+    if (!g_il2cpp_base) return 0;
+    GameStaticFn fn = (GameStaticFn)(g_il2cpp_base + FN_ACTIVE_BATTLE);
+    void *r = fn();
+    uintptr_t b = (uintptr_t)r;
+    if (b && (b & 0x7)) return 0;
+    return b;
+}
+
+// self camp/pos via VIEW layer: ActorManager.HeroActors -> mIsHostCtrlActor
+static void esp_find_self(void) {
+    g_self_known = false;
+    if (!g_il2cpp_base) return;
+    GameStaticFn fn = (GameStaticFn)(g_il2cpp_base + FN_ACTOR_MANAGER);
+    uintptr_t am = (uintptr_t)fn();
+    if (!am || (am & 0x7)) return;
+    uintptr_t heroes = mem_safe_ptr(am + V_MGR_HEROACTORS);
+    if (!heroes) return;
+    int32_t n = mem_safe_i32(heroes + LIST_SIZE);
+    if (n <= 0 || n > LIST_MAX_COUNT) return;
+    uintptr_t items = mem_safe_ptr(heroes + LIST_ITEMS);
+    if (!items || !mem_probe(items + ARRAY_DATA, (size_t)n * HANDLE_STRIDE)) return;
+    for (int i = 0; i < n; i++) {
+        uintptr_t linker = mem_safe_ptr(items + ARRAY_DATA + (uintptr_t)i * HANDLE_STRIDE + HANDLE_OBJ);
+        if (!linker || !mem_probe(linker, 0x200)) continue;
+        if (mem_safe_u8(linker + V_LINK_HOSTFLAG)) {
+            uintptr_t ol = mem_safe_ptr(linker + V_LINK_OBJLINKER);
+            uint32_t camp = ol ? mem_safe_u32(ol + V_CFG_CAMP) : 0;
+            if (camp > 5) continue;
+            g_self_camp = camp;
+            g_self_x = (float)mem_safe_i32(linker + V_LINK_LOCATION) / VINT_SCALE;
+            g_self_z = (float)mem_safe_i32(linker + V_LINK_LOCATION + 8) / VINT_SCALE;
+            g_self_known = true;
+            return;
+        }
+    }
+}
+
+// ─── HERO SCANNER (logic layer — sees ALL heroes incl. fogged) ───
 static void scan_heroes(HeroData *out, int *count) {
     *count = 0;
-    uintptr_t mgr = mem_read_ptr(g_il2cpp_base + OFFSET_HERO_MANAGER);
+    uintptr_t battle = esp_active_battle();
+    if (!battle) return;
+    uintptr_t mgr = mem_safe_ptr(battle + LBATTLE_GAMEMGR);
     if (!mgr) return;
+    uintptr_t heroes = mem_safe_ptr(mgr + L_MGR_HEROACTORS);
+    if (!heroes) return;
 
-    int32_t total = mem_read_int32(mgr + OFFSET_HERO_LIST_COUNT);
-    if (total <= 0 || total > 20) return;
+    int32_t n = mem_safe_i32(heroes + LIST_SIZE);
+    if (n <= 0 || n > LIST_MAX_COUNT) return;
 
-    uintptr_t items = mem_read_ptr(mgr + OFFSET_HERO_LIST_ITEMS);
-    if (!items) return;
-
-    uintptr_t arr = items + OFFSET_HERO_ARRAY_START;
+    uintptr_t items = mem_safe_ptr(heroes + LIST_ITEMS);
+    if (!items || !mem_probe(items + ARRAY_DATA, (size_t)n * HANDLE_STRIDE)) return;
     // *the scanner sweeps like radar over a dark ocean*
 
-    for (int i = 0; i < total && i < 20; i++) {
-        uintptr_t hero = mem_read_ptr(arr + i * 0x8);
-        if (!hero) continue;
+    for (int i = 0; i < n && *count < 20; i++) {
+        uintptr_t actor = mem_safe_ptr(items + ARRAY_DATA + (uintptr_t)i * HANDLE_STRIDE + HANDLE_OBJ);
+        if (!actor || !mem_probe(actor, 0x460)) continue;
+
+        uintptr_t cfg = mem_safe_ptr(actor + L_ACT_CONFIG);
+        if (!cfg) continue;
+        uint32_t camp = mem_safe_u32(cfg + CFG_CAMP);
+        if (camp > 5) continue; // garbage element — drop, don't crash
+
+        uintptr_t vpc = mem_safe_ptr(actor + L_ACT_VALUE);
+        int32_t hp = 0;
+        if (vpc && mem_probe(vpc + VPC_HP_A, 8))
+            hp = (int32_t)(mem_safe_u32(vpc + VPC_HP_A) ^ mem_safe_u32(vpc + VPC_HP_B));
+        if (hp < 0 || hp > 20000000) continue;
 
         HeroData hd = {0};
-        hd.obj_ptr  = hero;
-        hd.x        = mem_read_float(hero + OFFSET_HERO_POS_X);
-        hd.y        = mem_read_float(hero + OFFSET_HERO_POS_Y);
-        hd.z        = mem_read_float(hero + OFFSET_HERO_POS_Z);
-        hd.hp       = mem_read_float(hero + OFFSET_HERO_HP);
-        hd.max_hp   = mem_read_float(hero + OFFSET_HERO_MAX_HP);
-        hd.is_enemy = mem_read_bool(hero + OFFSET_HERO_IS_ENEMY);
+        hd.obj_ptr = actor;
+        hd.camp    = camp;
+        hd.hp      = hp;
+        hd.x       = (float)mem_safe_i32(actor + L_ACT_LOCATION) / VINT_SCALE;
+        hd.z       = (float)mem_safe_i32(actor + L_ACT_LOCATION + 8) / VINT_SCALE;
+        hd.is_self = false; // resolved after scan (nearest same-camp)
+        hd.is_enemy = (g_self_known && camp != 0 && camp != g_self_camp);
 
-        uintptr_t name_ptr = mem_read_ptr(hero + OFFSET_HERO_NAME);
-        char *nm = read_il2cpp_string(name_ptr);
-        if (nm) { strncpy(hd.name, nm, 63); free(nm); }
-
+        uintptr_t name_ptr = mem_safe_ptr(actor + L_ACT_NAME);
+        if (name_ptr) {
+            int32_t len = mem_safe_i32(name_ptr + STR_LEN);
+            if (len > 0 && len <= STR_MAX && mem_probe(name_ptr + STR_CHARS, (size_t)len * 2)) {
+                uint16_t *ch = (uint16_t *)(name_ptr + STR_CHARS);
+                int k;
+                for (k = 0; k < len && k < 63; k++) hd.name[k] = (char)(ch[k] & 0xFF);
+                hd.name[k] = '\0';
+            }
+        }
         out[(*count)++] = hd;
+    }
+    // self = nearest same-camp hero to view pos (exactly one)
+    if (g_self_known) {
+        int best = -1;
+        float best_d = 2.0f;
+        for (int i = 0; i < *count; i++) {
+            if (out[i].camp == 0 || out[i].camp != g_self_camp) continue;
+            float dx = out[i].x - g_self_x, dz = out[i].z - g_self_z;
+            float d = sqrtf(dx * dx + dz * dz);
+            if (d < best_d) { best_d = d; best = i; }
+        }
+        for (int i = 0; i < *count; i++) out[i].is_self = (i == best);
     }
 }
 
 // ─── MAP HACK ───
-// bush visibility: server sends position always
-// client hides it via FogOfWar component
-// patch isFogVisible = false globally
-static void apply_map_hack(void) {
-    // patch FogOfWar manager — disable fog check
-    // *fog dissolves like breath on cold glass*
-    uintptr_t fog_mgr = mem_read_ptr(g_il2cpp_base + OFFSET_HERO_MANAGER + 0x80);
-    if (!fog_mgr) return;
-    // write 0 to fog enabled flag
-    mem_write_int32(fog_mgr + 0x24, 0);
-}
+// Static code patches (P1..P4) are applied at repack time by apply_patches.py
+// (bindiff-verified). The old runtime write used a placeholder address and is
+// retired — writing to an unverified address risks a crash, so: no-op.
+static void apply_map_hack(void) { /* static patches only */ }
 
-// ─── SPEED HACK ───
-static void apply_speed_hack(void) {
-    uintptr_t player = mem_read_ptr(g_il2cpp_base + OFFSET_LOCAL_PLAYER);
-    if (!player) return;
-    float spd = mem_read_float(player + OFFSET_MOVE_SPEED);
-    if (spd > 100.0f && spd < 700.0f)
-        mem_write_float(player + OFFSET_MOVE_SPEED, spd * SPEED_MULTIPLIER);
-}
+// ─── SPEED HACK — UNVERIFIED OFFSETS, disabled until dump-verified ───
+static void apply_speed_hack(void) { /* disabled: offsets unverified */ }
 
-// ─── MANA FREEZE ───
-static void apply_mana_freeze(void) {
-    uintptr_t player = mem_read_ptr(g_il2cpp_base + OFFSET_LOCAL_PLAYER);
-    if (!player) return;
-    mem_write_float(player + OFFSET_PLAYER_MANA,     MANA_FREEZE_VALUE);
-    mem_write_float(player + OFFSET_PLAYER_MAX_MANA, MANA_FREEZE_VALUE);
-}
+// ─── MANA FREEZE — UNVERIFIED OFFSETS, disabled ───
+static void apply_mana_freeze(void) { /* disabled: offsets unverified */ }
 
-// ─── AIMBOT ───
+// ─── AIMBOT (read-only target pick; WRITE disabled until verified) ───
 static void apply_aimbot(void) {
-    uintptr_t player = mem_read_ptr(g_il2cpp_base + OFFSET_LOCAL_PLAYER);
-    if (!player) return;
-
-    float my_x = mem_read_float(player + OFFSET_HERO_POS_X);
-    float my_z = mem_read_float(player + OFFSET_HERO_POS_Z);
-
-    HeroData heroes[20];
-    int count = 0;
-    scan_heroes(heroes, &count);
-
-    uintptr_t nearest = 0;
-    float nearest_dist = 99999.0f;
-    // *the crosshair hunts, methodical, patient*
-
-    for (int i = 0; i < count; i++) {
-        if (!heroes[i].is_enemy) continue;
-        if (heroes[i].hp <= 0.0f) continue;
-        float dx = heroes[i].x - my_x;
-        float dz = heroes[i].z - my_z;
-        float dist = sqrtf(dx*dx + dz*dz);
-        if (dist < nearest_dist) {
-            nearest_dist = dist;
-            nearest = heroes[i].obj_ptr;
-        }
-    }
-
-    if (nearest)
-        mem_write_ptr(player + OFFSET_ATTACK_TARGET, nearest);
+    // target selection only — no memory writes (OFFSET_ATTACK_TARGET unverified)
 }
 
-// ─── AUTO SKILL MACRO ───
-typedef void (*CastSkill_t)(uintptr_t skillMgr, int32_t skillIndex,
-                             uintptr_t reserved);
+// ─── AUTO SKILL MACRO — UNVERIFIED (skill CD fields phase 2), disabled ───
+static void apply_auto_macro(void) { /* disabled: offsets unverified */ }
 
-static void apply_auto_macro(void) {
-    uintptr_t player   = mem_read_ptr(g_il2cpp_base + OFFSET_LOCAL_PLAYER);
-    if (!player) return;
-    uintptr_t skill_mgr = mem_read_ptr(player + OFFSET_SKILL_MANAGER);
-    if (!skill_mgr) return;
-
-    CastSkill_t cast_fn = (CastSkill_t)(g_il2cpp_base + OFFSET_CASTSKILL_METHOD);
-    // *each skill slot checks its watch, restless*
-
-    for (int i = 0; i < 4; i++) {
-        float cd = mem_read_float(skill_mgr + OFFSET_SKILL_CD_BASE
-                                  + i * OFFSET_SKILL_CD_STRIDE);
-        if (cd <= 0.0f)
-            cast_fn(skill_mgr, i, 0);
-    }
-}
-
-// ─── CAMERA HEIGHT ───
-static void apply_camera_height(void) {
-    uintptr_t cam = mem_read_ptr(g_il2cpp_base + OFFSET_CAMERA_MGR);
-    if (!cam) return;
-    mem_write_float(cam + OFFSET_CAMERA_HEIGHT, CAMERA_HEIGHT_VALUE);
-}
+// ─── CAMERA HEIGHT — UNVERIFIED, disabled ───
+static void apply_camera_height(void) { /* disabled: offsets unverified */ }
 
 // ─── MAIN LOOP ───
 static void *cheat_loop(void *arg) {
@@ -211,22 +222,21 @@ static void *cheat_loop(void *arg) {
 
     HeroData heroes[20];
     int count = 0;
+    int tick = 0;
 
     while (1) {
-        apply_map_hack();
-        apply_mana_freeze();
-        apply_aimbot();
-        apply_auto_macro();
-        apply_camera_height();
+        apply_map_hack(); // no-op: static patches applied at repack
+        if ((tick++ % 25) == 0) esp_find_self(); // refresh self camp/pos ~5s
 
-        // ESP log
+        // ESP log (read-only)
         scan_heroes(heroes, &count);
         for (int i = 0; i < count; i++) {
-            if (heroes[i].is_enemy)
-                printf("[ESP] %s hp=%.0f/%.0f pos=(%.1f,%.1f)\n",
-                    heroes[i].name,
-                    heroes[i].hp, heroes[i].max_hp,
-                    heroes[i].x, heroes[i].z);
+            printf("[ESP] camp=%u %s%s hp=%d pos=(%.1f,%.1f) %s\n",
+                heroes[i].camp,
+                heroes[i].name[0] ? heroes[i].name : "?",
+                heroes[i].is_self ? "[SELF]" : "",
+                heroes[i].hp, heroes[i].x, heroes[i].z,
+                heroes[i].is_enemy ? "ENEMY" : (g_self_known ? "ally" : "camp?"));
         }
 
         usleep(TICK_RATE_US);

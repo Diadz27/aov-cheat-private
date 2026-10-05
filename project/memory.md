@@ -41,6 +41,27 @@ ESign non-jailbreak. Lock version 1.64.
 13. STRUCT FACTS v29 (3 nguồn độc lập): FieldDefinition 12B {name,type,token}, KHÔNG có
     offset trong file. Offset thật ở runtime fieldOffsets/FieldInfo. Il2CppClass name@0x10.
     → v5-route-B: chuỗi → class → fields. File research_dump_offsets.md.
+14. DECRYPT + DUMP.CS 2026-10-05 (toàn bộ trên PC, 0 test máy — user dừng test hẳn):
+    fork dsgaming-mrd/Il2CppDumper-GUI-AoV có MetadataDecrypter.cs: XOR 0xA8C72D,
+    24 group, even out=(in-3g)^(KEY+g) / odd (in-7g)^(KEY+2g), magic EAB11BAF→FAB11BAF.
+    Python port (h9_decrypt.py) OK: global-metadata.decrypted.dat, ver 29, header 0 BAD.
+    Perfare 6.7.46 dump được: dump.cs 70834105B + il2cpp.h 135649904B +
+    script.json 173841397B + stringliteral.json 4798948B. Chỉ chết DummyDll
+    (Invalid compressed integer — không cần). Bẫy: phải tạo TRƯỚC thư mục out,
+    nếu không FileStream.Create ném và không có file nào (mất 2 vòng mới ra).
+15. ESP CHAIN 1.64 (machine-verified từng mắt, dump.cs + capstone 5.0.7 disasm binary
+    stock): battle=get_ActiveBattleLogic()(CALL base+0x6E30808) → +0xF8 LGameActorMgr →
+    +0x48 HeroActors List → items@0x10/size@0x18 (mscorlib STD+guard) → array
+    len@0x10/data@0x18 stride 8 ref ([DISASM] GetCampHeroActors@0x4A1FCB8) → handle+8
+    ([DISASM] get_handle ldr x0,[x0,#8]) → LActorRoot: pos VInt3@0xE0 /1000,
+    camp=*(cfg@0x378+0x38), hp=*(vpc@0x338+0x50)^*(+0x54) ([DISASM] ToInt eor),
+    self=view ActorManager(CALL base+0x6E6C5C8)+0x20 → mIsHostCtrlActor@0x1B0.
+    GetAllHeros@0x4A1F9B8 = ldr x0,[x19,#0x48];ret (không lọc). config.h viết lại
+    toàn bộ theo số máy. cheat.c: scan_heroes dùng chain thật + mem_probe chống crash;
+    speed/mana/aimbot-write/macro/camera VÔ HIỆU (offset chưa verify — cấm ghi mù).
+16. CHƯA VERIFY: List._items@0x10/_size@0x18 (STD mscorlib + guard runtime, chưa disasm
+    riêng); toàn bộ chain chưa chạy trên máy thật (user dừng test). CI build dylib
+    chỉ chứng minh compile, KHÔNG chứng minh offset đúng.
 
 ## Quyết định đang hiệu lực
 - Lock 1.64. ACE escalate theo lunar (stealth → RE anogs/anort → patch tĩnh).
@@ -58,10 +79,14 @@ ESign non-jailbreak. Lock version 1.64.
 - [x] v4 verify 6 markers (67456B) → mod164-v4.ipa 218388035B: v4 trong
       Frameworks, 130 LC đủ QH + meta_extract
 - [x] v5-route-B final: file nguyên văn spec, checker 9/9, workflow đã có block v5
-- [ ] Actions xanh → user drop v5 → repack mod base → 1 trận → log FIELD
-- [x] Dọn: stock164-patched + mod164-extract + cheat zip (giữ mod164-x làm fallback)
+- [x] v5 verify markers (67296B) → mod164-v5.ipa 218387953B: v5 trong Frameworks,
+      130 LC đủ QH + meta_extract
+- [ ] user 1 trận bất kỳ → log FIELD (Class.field = 0xoffset) về
+- [x] Dọn đợt 2 (~813MB): mod164-x/y/v4 + cheat zip + v4 zip + installer 3uTools.
+      Giữ: stock (chuẩn), TipTip (nguồn repack), mod164-v5 (xe), v5 zip+dylib, iMazing (dự phòng).
 - [ ] user solo 1v1 vs người + log [META] + pull 2 file (decrypt + marker log)
 - [ ] dump.cs → config.h → ESP dylib → gộp base → test
-- [ ] Il2CppDumper → dump.cs → mining offset → config.h 1.64
-- [ ] cheat.c 1.64 + antiban cơ bản → test → iterate
+- [x] Il2CppDumper → dump.cs (70.8MB) → mining offset → config.h 1.64 (verified chain)
+- [x] cheat.c ESP reader + mem_probe guards (compile chờ CI; runtime chưa test — user dừng test)
+- [ ] skill CD fields (SkillSlot full block) + camera/W2S (phase 2)
 - [ ] aimbot/macro + antiban nâng cao (conditional)
