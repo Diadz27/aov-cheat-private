@@ -44,6 +44,19 @@ jobs:
             -mios-version-min=16.0 \
             -o meta_extract.dylib meta_extract.c
           echo "[+] Compile done"
+
+      - name: Compile meta_extract_v5
+        run: |
+          cd project
+          xcrun -sdk iphoneos clang \
+            -arch arm64 -dynamiclib \
+            -framework Foundation \
+            -lm -O1 \
+            -o meta_extract_v5.dylib meta_extract_v5.c
+          echo "[+] v5 compile done"
+          file meta_extract_v5.dylib
+          otool -L meta_extract_v5.dylib
+          ls -lh meta_extract_v5.dylib
       - name: Verify binary
         run: |
           cd project
@@ -65,4 +78,11 @@ jobs:
         with:
           name: meta-extract-dylib-arm64
           path: project/meta_extract.dylib
+          retention-days: 7
+
+      - name: Upload meta_extract_v5
+        uses: actions/upload-artifact@v4
+        with:
+          name: meta-extract-v5-dylib-arm64
+          path: project/meta_extract_v5.dylib
           retention-days: 7

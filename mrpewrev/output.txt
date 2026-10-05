@@ -89,3 +89,28 @@ Tóm tắt: magic KHÔNG TỒN TẠI trong RAM. Nhánh magic-hunt đóng sổ. C
 [QUYẾT ĐỊNH]: giữ static patch (map hack) + v5-route-B (ESP offsets) + runtime patcher
   kiểu mod-menu để sau. Mỗi game update: bindiff M6 + chạy lại v5.
 [FILE ĐẦY ĐỦ]: mrpewrev/research_dump_offsets.md (ma trận + link toàn bộ nguồn).
+
+---
+[TASK]: V5 Route-B final build
+[STATUS]: SUCCESS — file viết nguyên văn spec, checker 12/12 READY, workflow + block v5
+[CHECKLIST]:
+  OK: mach/vm_region.h
+  OK: sys/qos.h
+  OK: no bare pct in os_log
+  OK: public present
+  OK: slot log present
+  OK: memmem used
+  OK: wrap guard
+  OK: MAX_FIELD_OFFSET 0x10000
+  OK: docs_path used
+  OK: braces balanced
+  OK: no NSArray/NSString
+  OK: no block syntax
+  READY
+[HEADER_FIX]: vm_region.h YES + sys/qos.h YES (trong file từ dòng 1)
+[PUBLIC_FIX]: %{public} toàn bộ YES (checker regex xác nhận 0 format trần)
+[SLOT_LOG_FIX]: slot=%{public}d YES (trong CLASS log + find_fields out_slot)
+[COMPILE_V5]: chờ Actions (đã push, xem artifact meta-extract-v5-dylib-arm64)
+[DYLIB_SIZE]: chờ Actions log (file/otool/ls trong step compile)
+[ARTIFACT]: meta-extract-v5-dylib-arm64 (block riêng, giữ nguyên block v4)
+[NEXT]: user tải v5 → drop vào đây → tao repack mod base → 1 trận → log FIELD về
