@@ -35,6 +35,12 @@ ESign non-jailbreak. Lock version 1.64.
     apply_patches.py đọc bảng patches_164.txt lúc chạy. Mọi bytes đều từ máy.
 11. .bak lọt vào IPA lần đầu → repack skip *.bak khi zip. stock164-patched.ipa
     226248868B: 4/4 patch = NEW bytes verify trong IPA cuối, 0 .bak, 570 entries.
+12. L9: ĐÍNH CHÍNH claim "runtime patch = SIGKILL chắc chắn" — SAI với ESign thực tế.
+    Scene sống bằng runtime vm_write (joeyjurjens/HuyJIT/iOSGods non-JB). Static = an
+    toàn nhất (giữ), runtime = chuẩn công nghiệp (mở lại, không loại).
+13. STRUCT FACTS v29 (3 nguồn độc lập): FieldDefinition 12B {name,type,token}, KHÔNG có
+    offset trong file. Offset thật ở runtime fieldOffsets/FieldInfo. Il2CppClass name@0x10.
+    → v5-route-B: chuỗi → class → fields. File research_dump_offsets.md.
 
 ## Quyết định đang hiệu lực
 - Lock 1.64. ACE escalate theo lunar (stealth → RE anogs/anort → patch tĩnh).
@@ -42,10 +48,19 @@ ESign non-jailbreak. Lock version 1.64.
 - Không xóa ngoài D:\LQMB BY CLAUDE + TEMP khi chưa hỏi. Push giữ pattern confirm.
 
 ## Hàng đợi
-- [x] meta_extract v2 (os_log/heartbeat/MIN-copy/marker/region-cap)
-- [x] push 7562627 → Actions xanh → v2 dylib 66936B ARM64 verify OK
-- [x] repack mod164 v2 (dylib 66936B trong Frameworks, LC @rpath OK, IPA 226MB)
-- [ ] user ESign + run + log [META] + pull global-metadata.decrypted.dat
+- [x] meta_extract v3 (rescan 20x60s, full-region, marker/vòng) — commit 25acea7, đã push
+- [x] apply_patches + --map-patches (commit 4e54712, push cùng 25acea7 theo duyệt plan)
+- [x] Actions xanh → v3 verify strings (round-based, hết dấu v2)
+- [x] repack mod164-y.ipa 218386884B: v3 trong Frameworks, 130 LC đủ QH + meta_extract
+- [x] v4 (commit dbd34aa, đã push): camouflage + rc/born/awake + fallback quick-scan,
+      %{public} toàn bộ, Documents cho mọi output. Fix 11 điểm spec Claude (ObjC chết,
+      thiếu include/MIN, block→dispatch_after_f, save sai path, fallback treo main).
+- [x] v4 verify 6 markers (67456B) → mod164-v4.ipa 218388035B: v4 trong
+      Frameworks, 130 LC đủ QH + meta_extract
+- [ ] user test 60s sảnh, đọc 4 mốc (rc/born/awake/round)
+- [x] Dọn: stock164-patched + mod164-extract + cheat zip (giữ mod164-x làm fallback)
+- [ ] user solo 1v1 vs người + log [META] + pull 2 file (decrypt + marker log)
+- [ ] dump.cs → config.h → ESP dylib → gộp base → test
 - [ ] Il2CppDumper → dump.cs → mining offset → config.h 1.64
 - [ ] cheat.c 1.64 + antiban cơ bản → test → iterate
 - [ ] aimbot/macro + antiban nâng cao (conditional)
