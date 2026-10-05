@@ -57,8 +57,7 @@ ESign non-jailbreak. Lock version 1.64.
       thiếu include/MIN, block→dispatch_after_f, save sai path, fallback treo main).
 - [x] v4 verify 6 markers (67456B) → mod164-v4.ipa 218388035B: v4 trong
       Frameworks, 130 LC đủ QH + meta_extract
-- [x] v5-route-B final (checker 12/12): headers đủ, public phủ, slot log, memmem,
-      wrap guard, cap 0x10000, Documents. Workflow + block v5 riêng, giữ v4.
+- [x] v5-route-B final: file nguyên văn spec, checker 9/9, workflow đã có block v5
 - [ ] Actions xanh → user drop v5 → repack mod base → 1 trận → log FIELD
 - [x] Dọn: stock164-patched + mod164-extract + cheat zip (giữ mod164-x làm fallback)
 - [ ] user solo 1v1 vs người + log [META] + pull 2 file (decrypt + marker log)
