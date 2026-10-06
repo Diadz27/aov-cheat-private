@@ -304,3 +304,10 @@ Tóm tắt: magic KHÔNG TỒN TẠI trong RAM. Nhánh magic-hunt đóng sổ. C
 [DA LAM]: HOW TO USE ghi ro trang thai v2 (dang loi, cho v3); memory L25.
 [NEXT]: CI build v3 (vm_read) -> user tai dylib moi -> repack v3 -> test dung goi cu.
   V3 khong vang -> khoa ban. V3 van vang -> thang R0-R3 (cat dan tung phan).
+
+---
+[PHIEN]: buildmode-cifix-01 - ngay 2026-10-07. CI do 4 lan, user doc log ra loi.
+[LOI]: mach/mach_vm.h bi cam tren iOS + mach_vm_read_overwrite khong ton tai.
+  Fix: mach/vm_map.h + vm_read_overwrite (trinh bien dich tu goi y) + mincore char.
+  Day la loi dung header macOS cho iOS. User doc log CI la then chot pha an.
+[NEXT]: push -> CI xanh? -> tai dylib v3 that -> repack v3 -> test goi cu.

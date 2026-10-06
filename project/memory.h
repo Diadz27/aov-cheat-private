@@ -1,5 +1,5 @@
 // memory.h — Memory primitives (in-process, no kernel)
-// L-rules: EVERY read goes through mach_vm_read_overwrite (single kernel
+// L-rules: EVERY read goes through vm_read_overwrite (single kernel
 // copy — a racing unmap returns error, never SIGSEGV). No probe-then-deref
 // anywhere on the hot path (that race crashed v2 during pack download).
 // Writers compiled out unless ENABLE_WRITES.
@@ -14,16 +14,18 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <mach/mach.h>
-#include <mach/mach_vm.h>
+#include <mach/vm_map.h> // vm_read_overwrite (mach_vm.h is macOS-only)
 
 // kernel copy; false on any failure (unmapped/protection/race). Never faults.
+// NOTE: iOS SDK has no mach_vm.h / mach_vm_read_overwrite — the classic
+// vm_read_overwrite from vm_map.h is the available equivalent.
 static inline bool mem_vm_read(uintptr_t addr, void *out, size_t len) {
     if (addr < 0x10000 || !out || !len || len > 0x10000) return false;
-    mach_vm_size_t got = 0;
-    kern_return_t kr = mach_vm_read_overwrite(mach_task_self(),
-        (mach_vm_address_t)addr, (mach_vm_size_t)len,
-        (mach_vm_address_t)out, &got);
-    return kr == KERN_SUCCESS && got == (mach_vm_size_t)len;
+    vm_size_t got = 0;
+    kern_return_t kr = vm_read_overwrite(mach_task_self(),
+        (vm_address_t)addr, (vm_size_t)len,
+        (vm_address_t)out, &got);
+    return kr == KERN_SUCCESS && got == (vm_size_t)len;
 }
 
 // page probe — safe by itself (mincore never faults). Used ONLY for coarse
@@ -38,7 +40,7 @@ static inline bool mem_probe(uintptr_t addr, size_t len) {
     if (end < addr) return false; // overflow
     uintptr_t page = addr & ~(uintptr_t)(ps - 1);
     for (uintptr_t p = page; p < end; p += (uintptr_t)ps) {
-        unsigned char v = 0;
+        char v = 0;
         if (mincore((void *)p, (size_t)ps, &v) != 0) return false;
     }
     return true;

@@ -177,3 +177,8 @@ ESign non-jailbreak. Lock version 1.64.
     từng bản. Fix thật = v3 (đã push, chờ CI + user tải dylib).
 24. L24 LUẬT MỚI (user): mỗi lần xong → tạo HOW TO USE.txt duy nhất, XÓA giấy cũ.
     Đã gộp 2 HUONGDAN thành HOW TO USE.txt (v2 + vá hành trình) + xóa 2 file cũ.
+25. L25 CI ĐỎ 4 lần (#15-#18): nguyên nhân duy nhất là memory.h của tao —
+    mach/mach_vm.h BỊ CẤM trên iOS (#error unsupported) + mach_vm_read_overwrite
+    không tồn tại → trình biên dịch tự gợi ý vm_read_overwrite (mach/vm_map.h).
+    Fix: vm_map.h + vm_read_overwrite + mincore char (hết warning). Lỗi tao dùng
+    header macOS cho iOS mà không kiểm tra. User là người đọc log CI tìm ra.
