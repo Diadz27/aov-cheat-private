@@ -218,3 +218,19 @@ Tóm tắt: magic KHÔNG TỒN TẠI trong RAM. Nhánh magic-hunt đóng sổ. C
 [FILES PHIÊN]: project/cheat.c + config.h + memory.h + memory.md (sửa);
   project/CHAIN.md + OFFSETS.md + SEASON.md + RISK.md (mới);
   .github/workflows/build-dylib.yml (đổi tên dylib + strip/hidden).
+
+---
+[PHIEN]: buildmode-P1-repack-01 - ngay 2026-10-06. Repack mod164-esp.ipa xong tren PC.
+[DA LAM]:
+1. User tai tay libunityhelper-arm64.zip (4635B, CI xanh) - khoi can gh auth.
+2. Bung ra dylib 66920B thin ARM64 MH_DYLIB ncmds=18, verified bang parser Mach-O.
+3. repack_ipa.py mod164-v5.ipa + dylib (KHONG --map-patches: base da co hack,
+   khong dung __TEXT) ra mod164-esp.ipa 214652163B/428 entries.
+   SU CO: crash UnicodeEncodeError cp1252 khi script in log tieng Viet -
+   nguyen nhan console Windows, khong phai logic repack. Fix: PYTHONIOENCODING=utf-8.
+4. Verify PC: dylib bytes identical (sha256), LC ncmds 130->131, path LC hien dien,
+   0 .bak, Info.plist OK, Frameworks co libUnityHelper + meta_extract.
+5. HUONGDAN-ESP-LOG.txt (giay 6 buoc keo sync_state.txt) + memory.md cap nhat.
+[DANG VUONG]: ky ESign + 1 tran AFK + keo log (viec cua user, khi ranh).
+[NEXT]: co sync_state.txt -> doc LAYOUT/V6HIT/n/camp/pos/hp -> khoa ban hoac sua.
+[FILES PHIEN]: mod164-esp.ipa (moi, xe ESP); HUONGDAN-ESP-LOG.txt (moi).

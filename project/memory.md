@@ -122,6 +122,16 @@ ESign non-jailbreak. Lock version 1.64.
 - [x] P0 build mode: config.h tầng nhãn + chain đúng + dual-hypothesis; cheat.c
       static-read + lọc clone + camp động + log xoay vòng sync_state.txt + v6 tên-thật;
       libUnityHelper.dylib (đổi tên, strip, hidden); 4 ledger CHAIN/OFFSETS/SEASON/RISK
+- [x] P0a fresh-eyes: string BIN{08,0C} CONFIRMED 3 nguồn (sửa code đọc sai 10/14),
+      neutral naming toàn bộ, v6 info_count reset/loop, CFG_CONFIGID, SYNC_LOG_*,
+      reader_loop/get_battle; commit 55b306f + PUSH main (luật nới) — CI đang build
+- [ ] P1: tải libUnityHelper artifact (cần gh auth hoặc user tải tay) → repack
+      mod164-esp.ipa → verify PC → cất tủ + giấy 6 bước (NGHẼN Ở ARTIFACT)
+- [x] P1 DONE build mode: user tải libunityhelper-arm64.zip (4635B) → dylib 66920B
+      ARM64 thin verified → repack mod164-v5.ipa (KHÔNG --map-patches, base đã hack)
+      → mod164-esp.ipa 214652163B/428 entries: dylib bytes identical, LC ncmds 131,
+      0 .bak, Info.plist OK + HUONGDAN-ESP-LOG.txt. Lỗi console cp1252 khi in log
+      repack (chữ Việt) — fix bằng PYTHONIOENCODING=utf-8 (bài học mới).
 - [ ] skill CD fields (SkillSlot full block) + camera/W2S (phase 2)
 - [ ] self-resolve (view static có bl-transform, chưa replicate được — KHÔNG heuristic giả)
 - [ ] push commit → CI build libUnityHelper → tải về → repack mod164-esp.ipa (CHỜ DUYỆT PUSH)
