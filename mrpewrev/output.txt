@@ -280,3 +280,14 @@ Tóm tắt: magic KHÔNG TỒN TẠI trong RAM. Nhánh magic-hunt đóng sổ. C
 [GIay]: HUONGDAN-ESP-LOG-v2.txt (chuan bi/ky/tin cay iOS26/tai goi 63MB/5v5/keo 2 file/
   doc nhanh/OPSEC). Giay cu giu nguyen (lich su).
 [NEXT]: user cai v2 -> bao % neu vang + keo sync_state.txt + alive.txt (+kgvn ips).
+
+---
+[PHIEN]: buildmode-selftest-01 - ngay 2026-10-07. Selftest GREEN 17/17 + tool sua loi.
+[SELFTEST]: A1 decrypt PASS; A2 mine 8/8 PASS (sau khi sua block-nested + decoy-base);
+  A3 slot 0xD0BBE00 tu RVA that; A4 emit khop config.h 5/5.
+[3 LOI BI BAT]: (a) block() khop class long nhau truoc; (b) methods_rva rot decl '{ }';
+  (c) QUAN TRONG: get_actorManager thuoc KyriosFramework (khong phai ActorManager) -
+  V_MGR_SLOT cu (0xD1082B0) tu ham nhan nham -> danh UNKNOWN; view hoan chinh thuc.
+  May moc: tu bat loi cua chinh minh bang test, khong can mat nguoi.
+[NEXT]: CI build v3 (vm_read) -> tai dylib -> repack v3 -> test goi cu + keo log.
+[FILES]: project/tools/ (7 file: decrypt/slot_mine/slot_parser/emit/stability/season/selftest).

@@ -158,3 +158,15 @@ ESign non-jailbreak. Lock version 1.64.
       giữ nguyên metadata zip (method/quyền), cảnh báo ký ESign; workflow: job RELEASE,
       retention 90d, bỏ UIKit thừa. Dead mem_read_* giữ (warning only).
 - [ ] aimbot/macro + antiban nâng cao (conditional)
+22. L22 (quyet dinh khoa): HYBRID-PLUS giu nguyen; trang BO han (du phong trong RISK);
+    tool rieng KHONG build (v6 trong dylib thay the); push build NOI (tu push commit
+    build); ong season_update.py DE phase sau (tranh scope creep); string BIN
+    {len@0x8,chars@0xC} CONFIRMED 3 nguon (get_Length/get_Chars/dump) - code doc
+    sai 0x10/0x14 da sua + khoa str theo trial; List BIN {items@0x8,size@0x10}
+    (BetterList leaf + census 1016v363); array BIN giu (2 diem disasm).
+23. L23 selftest GREEN (17/17): decrypt->mine->slot->emit khop config.h da commit.
+    Sua 3 loi do selftest bat duoc: (a) block() khop nham class long nhau
+    (them negative-lookahead + loc base decoy ActorConfigData); (b) methods_rva
+    khong an decl co '{ }' cung dong; (c) get_actorManager thuoc ve KyriosFramework
+    (KHONG phai ActorManager) - V_MGR_SLOT cu tu ham nhan nham -> danh UNKNOWN,
+    view path hoan chinh thuc (v1 khong dung view). M1 vm_read retrofit committed.

@@ -54,10 +54,12 @@
 // [DUMP] CampsHeroActors @0x90 (alt path, unused v1)
 #define L_MGR_CAMPSHEROES   0x90u
 
-// ─── ActorManager (view — visible only; self-detect best-effort) ───
-// [DUMP] HeroActors @0x20. Root static: slots 0xD1082B0/0xD1082C0 + unknown
-// bl-transforms + ldr [,#0x40] — replicated best-effort, VALIDATED, non-fatal.
-#define V_MGR_SLOT          0x0D1082B0u
+// ─── ActorManager (view — visible only; self-detect DEFERRED) ───
+// [DUMP] HeroActors @0x20 (field offset stands). Root static UNKNOWN:
+// old slot 0xD1082B0 came from a misidentified getter (true owner of
+// get_actorManager@0x6E5368C is KyriosFramework, not ActorManager).
+// View chain NOT used by v1. Re-derive in phase 2.
+#define V_MGR_SLOT          0x0u
 #define V_MGR_HEROACTORS    0x20u
 
 // ─── List<T> — DUAL hypothesis ([CALIB] picks winner at runtime) ───
