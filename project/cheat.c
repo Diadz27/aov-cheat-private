@@ -231,6 +231,7 @@ static void *reader_loop(void *arg) {
     }
     if (!g_il2cpp_base) return NULL;
 
+#ifndef RELEASE_BUILD
     char logpath[512];
     docs_path(logpath, sizeof(logpath), SYNC_LOG_NAME);
     if (!logpath[0]) return NULL;
@@ -238,19 +239,19 @@ static void *reader_loop(void *arg) {
     snprintf(tmppath, sizeof(tmppath), "%s.tmp", logpath);
     char alivepath[512];
     docs_path(alivepath, sizeof(alivepath), "alive.txt");
+    bool v6_done = false;
+#endif
 
     HeroData heroes[64];
     int tick = 0;
     int idle_ticks = 0;
-#ifndef RELEASE_BUILD
-    bool v6_done = false;
-#endif
     while (1) {
         int n = scan_heroes(heroes);
         if (n <= 0) {
             // pre-battle/loading: back off to 1s cadence (near-zero footprint
             // while the game downloads/decompresses resource packs)
             if (++idle_ticks > 5) {
+#ifndef RELEASE_BUILD
                 if (alivepath[0] && (tick % 25) == 0) {
                     FILE *a = fopen(alivepath, "w");
                     if (a) {
@@ -258,6 +259,7 @@ static void *reader_loop(void *arg) {
                         fclose(a);
                     }
                 }
+#endif
                 tick++;
                 sleep(1);
                 continue;
