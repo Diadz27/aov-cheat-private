@@ -311,3 +311,13 @@ Tóm tắt: magic KHÔNG TỒN TẠI trong RAM. Nhánh magic-hunt đóng sổ. C
   Fix: mach/vm_map.h + vm_read_overwrite (trinh bien dich tu goi y) + mincore char.
   Day la loi dung header macOS cho iOS. User doc log CI la then chot pha an.
 [NEXT]: push -> CI xanh? -> tai dylib v3 that -> repack v3 -> test goi cu.
+
+---
+[PHIEN]: buildmode-repackv3-01 - ngay 2026-10-07. Repack ESP v3 xong.
+[DA LAM]: user tai zip tu lan CI XANH (4633B, dung luat moi: chi tai zip + ghi de,
+  khong giai nen) -> bung ra dylib 67096B Mach-O verified, khac bytes v2 ->
+  repack mod164-esp-v3.ipa 214652160B/428 entries: only-added 1 dylib, missing 0,
+  LC 131, bytes identical, 0 .bak. HOW TO USE len v3. Push.
+[NEXT]: user ky v3 -> tai dung goi hay vang (ghi %) -> vao tran 5v5 -> keo 2 log.
+  Khong vang -> doc log khoa ban. Van vang -> thang R0-R3 + .ips.
+[FILES]: mod164-esp-v3.ipa (moi, xe v3).

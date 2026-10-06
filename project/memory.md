@@ -182,3 +182,7 @@ ESign non-jailbreak. Lock version 1.64.
     không tồn tại → trình biên dịch tự gợi ý vm_read_overwrite (mach/vm_map.h).
     Fix: vm_map.h + vm_read_overwrite + mincore char (hết warning). Lỗi tao dùng
     header macOS cho iOS mà không kiểm tra. User là người đọc log CI tìm ra.
+26. L26 v3: user tải zip từ lần CI XANH (4633B) → dylib 67096B Mach-O verified,
+    khác bytes v2 → repack mod164-esp-v3.ipa 214652160B: only-added 1 dylib,
+    missing 0, LC 131. HOW TO USE lên v3. LUẬT MỚI (user): chỉ tải file zip,
+    ghi đè khi trùng tên, không giải nén (bung là việc của tao).

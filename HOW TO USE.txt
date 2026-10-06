@@ -1,14 +1,13 @@
-HOW TO USE — BẢN mod164-esp-v2.ipa (cập nhật sau mỗi lần xong việc, luôn chỉ giữ 1 file này)
-TRẠNG THÁI BẢN v2 (ghi rõ, không giấu): v2 VẪN VĂNG khi tải gói tài nguyên.
-v2 chỉ khác v1 ở chỗ ngủ chờ (giảm tải), chưa chứa bản fix đọc-chống-văng (v3
-đang build). Nếu mày đang đọc giấy này mà chưa có v3: test v2 CHỈ để lấy 2 thứ
-(% văng + file log nếu có), đừng kỳ vọng nó chạy êm. Bản fix thật là v3.
+HOW TO USE — BẢN mod164-esp-v3.ipa (cập nhật sau mỗi lần xong việc, luôn chỉ giữ 1 file này)
+BẢN v3 CÓ GÌ MỚI (đọc trước khi test): mọi mắt đọc chuyển sang lệnh nhân hệ điều
+hành — vùng nhớ biến mất giữa chừng thì báo lỗi chứ KHÔNG văng app. Đây chính là
+bản fix cho vụ văng lúc tải gói. v1/v2 dùng cách đọc cũ (đã biết bệnh) — bỏ.
 Mục đích: 1 lần duy nhất — kiểm tra bản đọc ESP có sống + đọc đúng trên máy thật.
 
 0. CHUẨN BỊ
 - Máy trống ít nhất 2GB. Dùng acc RÁC (không acc chính, không leo rank mod).
 - Giữ nguyên game/iOS, đừng update gì trong lúc test.
-- File: mod164-esp-v2.ipa (~215MB). Chép vào máy qua cáp USB (Files/3uTools).
+- File: mod164-esp-v3.ipa (~215MB). Chép vào máy qua cáp USB (Files/3uTools).
 
 1. KÝ (ESign, cert mua)
 - Import cert .p12 + mobileprovision trước.
