@@ -1,0 +1,46 @@
+GIẤY HƯỚNG DẪN v2 — BẢN mod164-esp-v2.ipa (đọc kỹ 1 lần, làm theo thứ tự)
+Mục đích: lấy đúng 1 file log để xác nhận ESP. Chỉ làm 1 lần, lúc rảnh.
+
+0. CHUẨN BỊ (trước khi ký)
+- Máy còn trống ít nhất 2GB (game 4GB + gói tải 63MB + file cài).
+- Dùng acc RÁC (tuyệt đối không acc chính, không leo rank bằng bản mod).
+- Giữ nguyên game/iOS, đừng update gì trong lúc test.
+- File cần: mod164-esp-v2.ipa (215MB). Chép vào máy qua cáp USB (Files/3uTools),
+  mất 1–3 phút. Không dùng AirDrop/Safari để cài.
+
+1. KÝ (ESign, cert mua)
+- ESign: import cert .p12 + file mobileprovision trước.
+- Import mod164-esp-v2.ipa → chọn đúng cert mua → BundleID GIỮ NGUYÊN →
+  KHÔNG tick thêm inject/tweak gì (dylib đã nằm sẵn trong máy) → Sign → Install.
+- Cert mua = không lo 7 ngày/revoke; cert free mới lo.
+
+2. MỞ LẦN ĐẦU + TIN CẬY (iOS 26)
+- Bấm mở, nếu báo Nhà phát triển Không đáng tin: Cài đặt → Cài đặt chung →
+  tìm mục VPN & Quản lý thiết bị (gõ VPN vào ô tìm kiếm) → chọn cert → Tin cậy →
+  Xác minh ứng dụng. Xong mới mở lại game.
+
+3. TẢI GÓI 63MB (điểm từng văng — đọc kỹ)
+- Bật WiFi (không dùng 4G), cắm sạc càng tốt, tắt app nền khác.
+- Mở game, đợi thanh tải gói 63MB chạy 1–5 phút. NẾU VĂNG: ghi lại văng ở
+  bao nhiêu % (con số này quan trọng nhất), mở lại cho tải tiếp (nó resume,
+  không mất gì). Văng 2–3 lần ở cùng 1 % thì dừng, báo tao đúng con số đó.
+- Văng lúc tải gói KHÔNG có nghĩa là hack hỏng — bản Unity cũ của game vốn
+  hay văng khúc này + iOS hay giết app ngốn RAM. Cứ bình tĩnh lấy số liệu.
+
+4. VÀO TRẬN (đúng mode mới có đủ số)
+- Vào đấu 5v5 THƯỜNG (không 1v1/3v3/luyện tập — các mode đó không đủ 10 hero).
+- Ở yên trong tế đàn 3–5 phút (thua cũng được, AFK cũng được, đừng thoát sớm
+  vì hero chưa load đủ). Xong thì vuốt tắt game hẳn.
+
+5. KÉO 2 FILE LOG (3uTools)
+- Cắm cáp → 3uTools → Thiết bị → Ứng dụng → Liên Quân → Documents.
+- Kéo 2 file về PC: sync_state.txt (bản ghi chính) + alive.txt (nhịp tim).
+- Mở sync_state.txt bằng Notepad, xem dòng đầu:
+  UL-1.64 ... n=10 là đẹp (10 hero). n=0 hoài = chưa thông (vẫn gửi tao).
+- Gửi NGUYÊN FILE cho tao (đừng chụp màn hình, đừng copy-paste).
+
+6. ĐỌC NHANH (mày tự xem trước cũng được)
+- H camp=1 ... = phe xanh (phe mình hoặc địch tùy trận), camp=2 phe còn lại.
+- hp = máu, pos = tọa độ, cfg = mã hero, nm = tên (có thể trống).
+- V6HIT = tên hệ thống trúng trong RAM (thưởng thêm, không bắt buộc có).
+- Xong là hết. Không cần trận thứ 2. Muốn sạch máy thì xóa bản mod.

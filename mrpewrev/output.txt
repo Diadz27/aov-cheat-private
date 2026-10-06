@@ -270,3 +270,13 @@ Tóm tắt: magic KHÔNG TỒN TẠI trong RAM. Nhánh magic-hunt đóng sổ. C
    (g_layout_str khong bao gio set) -> da sua trial truyen thang use_bin.
 [NEXT]: user ky v2 -> tai goi 63MB (ghi % neu vang) -> keo sync_state.txt + alive.txt
   (+ kgvn-*.ips neu vang) -> gui tao.
+
+---
+[PHIEN]: buildmode-cleanup-guide-01 - ngay 2026-10-07. Don 626.8MB + giay v2.
+[DON]: iMazing216196488 + esp-v1 214652163 + TipTip226283747 + meta_extract.dylib root
+  + zip cu = 657204768B (626.8MB). SU CO: xoa nham zip moi (trung ten ban cu) ->
+  KHOI PHUC tu dylib goc TEMP, sha256 identical. Bai hoc: trung ten thi kiem tra
+  ngay/size truoc khi xoa.
+[GIay]: HUONGDAN-ESP-LOG-v2.txt (chuan bi/ky/tin cay iOS26/tai goi 63MB/5v5/keo 2 file/
+  doc nhanh/OPSEC). Giay cu giu nguyen (lich su).
+[NEXT]: user cai v2 -> bao % neu vang + keo sync_state.txt + alive.txt (+kgvn ips).

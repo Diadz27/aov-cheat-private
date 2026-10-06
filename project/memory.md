@@ -135,6 +135,13 @@ ESign non-jailbreak. Lock version 1.64.
 - [x] P1b: CI build VERIFY 67072B + RELEASE 66768B (v6/log biến mất khỏi RELEASE —
       phát hiện SYNC_LOG_NAME còn sót, đã gate sạch); repack v2 = mod164-esp-v2.ipa
       214652570B: only-added đúng 1 dylib, missing 0, LC 131. Push 129a45d.
+- [x] Dọn đợt 3 (user duyệt): iMazing 216196488B + esp-v1 214652163B + TipTip
+      226283747B + meta_extract.dylib root + zip cũ → NHẸ 657204768B (626.8MB).
+      SỰ CỐ: xóa nhầm libunityhelper-arm64.zip mới (trùng tên với bản cũ đã bị ghi
+      đè từ trước) — KHÔI PHỤC ngay từ dylib gốc trong TEMP, verify sha256 identical.
+      Bài học: xóa file trùng tên phải kiểm tra ngày/size trước, không tin tên.
+- [x] HUONGDAN-ESP-LOG-v2.txt (giấy mới: chuẩn bị/ký/tin cậy iOS26/tải gói/mode 5v5/
+      kéo 2 file/đọc nhanh + OPSEC acc rác).
 - [ ] skill CD fields (SkillSlot full block) + camera/W2S (phase 2)
 - [ ] self-resolve (view static có bl-transform, chưa replicate được — KHÔNG heuristic giả)
 - [ ] push commit → CI build libUnityHelper → tải về → repack mod164-esp.ipa (CHỜ DUYỆT PUSH)
