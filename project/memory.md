@@ -136,4 +136,10 @@ ESign non-jailbreak. Lock version 1.64.
 - [ ] self-resolve (view static có bl-transform, chưa replicate được — KHÔNG heuristic giả)
 - [ ] push commit → CI build libUnityHelper → tải về → repack mod164-esp.ipa (CHỜ DUYỆT PUSH)
 - [ ] 1 log sync_state.txt duy nhất (AFK 1 trận): LAYOUT=? V6HIT? n=?
+- [x] Crash loading@tải gói 63MB: repack forensics SẠCH (chỉ +dylib/1 LC, __TEXT
+      identical); dylib không có đường crash chắc chắn pre-battle (chỉ còn khe
+      TOCTOU hẹp); tra cứu ngoài: Jetsam OOM lúc tải/bung asset là hung thủ quen
+      thuộc nhất đúng triệu chứng. Nghi: Jetsam/game-base > dylib > ký (loại).
+- [x] Hardening sau crash: alive.txt (đèn báo sống mỗi 25 tick) + pre-battle backoff
+      1s (gần 0 tải lúc loading/download); giữ nguyên logic ESP.
 - [ ] aimbot/macro + antiban nâng cao (conditional)

@@ -225,14 +225,35 @@ static void *reader_loop(void *arg) {
     char logpath[512];
     docs_path(logpath, sizeof(logpath), SYNC_LOG_NAME);
     if (!logpath[0]) return NULL;
+    char alivepath[512];
+    docs_path(alivepath, sizeof(alivepath), "alive.txt");
 
     HeroData heroes[20];
     int tick = 0;
+    int idle_ticks = 0;
 #ifndef RELEASE_BUILD
     bool v6_done = false;
 #endif
     while (1) {
         int n = scan_heroes(heroes);
+        if (n <= 0) {
+            // pre-battle/loading: back off to 1s cadence (near-zero footprint
+            // while the game downloads/decompresses resource packs)
+            if (++idle_ticks > 5) {
+                if (alivepath[0] && (tick % 25) == 0) {
+                    FILE *a = fopen(alivepath, "w");
+                    if (a) {
+                        fprintf(a, "tick=%d base=0x%lx\n", tick, g_il2cpp_base);
+                        fclose(a);
+                    }
+                }
+                tick++;
+                sleep(1);
+                continue;
+            }
+        } else {
+            idle_ticks = 0;
+        }
 #ifndef RELEASE_BUILD
         FILE *f = fopen(logpath, "w"); // rewrite each tick: bounded size
         if (f) {

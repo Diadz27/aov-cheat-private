@@ -234,3 +234,15 @@ Tóm tắt: magic KHÔNG TỒN TẠI trong RAM. Nhánh magic-hunt đóng sổ. C
 [DANG VUONG]: ky ESign + 1 tran AFK + keo log (viec cua user, khi ranh).
 [NEXT]: co sync_state.txt -> doc LAYOUT/V6HIT/n/camp/pos/hp -> khoa ban hoac sua.
 [FILES PHIEN]: mod164-esp.ipa (moi, xe ESP); HUONGDAN-ESP-LOG.txt (moi).
+
+---
+[PHIEN]: buildmode-crashharden-01 - ngay 2026-10-06. Crash loading khi tai goi 63MB.
+[PHAN TICH]: repack CLEAN (byte-diff chi +dylib/1 LC, __TEXT identical) -> loai binary hong.
+  Dylib audit: khong duong crash chac chan pre-battle (chi khe TOCTOU hep, xac suat thap).
+  Web intel: Jetsam OOM khi tai/bung asset la hung thu quen thuoc nhat dung trieu chung.
+  Thu tu nghi: Jetsam/game-base > dylib > ky (loai: chet ky thi chet tu luc mo).
+[DA LAM]: alive.txt (den bao song, 25 tick) + pre-battle backoff 1s (giam tai luc
+  loading/download); giu nguyen logic ESP. User: may trong >100GB -> loai het dung luong.
+[DANG VUONG]: can (1) sync_state.txt/alive.txt co ton tai khong, (2) test doi chung
+  mod164-v5.ipa cung goi 63MB, (3) kgvn-*.ips 20 dong dau.
+[NEXT]: commit+push -> CI build -> user tai dylib -> repack -> test lai + thu thap 3 bang chung.
