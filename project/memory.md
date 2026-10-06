@@ -170,3 +170,5 @@ ESign non-jailbreak. Lock version 1.64.
     khong an decl co '{ }' cung dong; (c) get_actorManager thuoc ve KyriosFramework
     (KHONG phai ActorManager) - V_MGR_SLOT cu tu ham nhan nham -> danh UNKNOWN,
     view path hoan chinh thuc (v1 khong dung view). M1 vm_read retrofit committed.
+24. L24 LUẬT MỚI (user): mỗi lần xong → tạo HOW TO USE.txt duy nhất, XÓA giấy cũ.
+    Đã gộp 2 HUONGDAN thành HOW TO USE.txt (v2 + vá hành trình) + xóa 2 file cũ.

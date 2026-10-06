@@ -291,3 +291,8 @@ Tóm tắt: magic KHÔNG TỒN TẠI trong RAM. Nhánh magic-hunt đóng sổ. C
   May moc: tu bat loi cua chinh minh bang test, khong can mat nguoi.
 [NEXT]: CI build v3 (vm_read) -> tai dylib -> repack v3 -> test goi cu + keo log.
 [FILES]: project/tools/ (7 file: decrypt/slot_mine/slot_parser/emit/stability/season/selftest).
+
+---
+[PHIEN]: buildmode-howtouse-01 - ngay 2026-10-07. Quy tac HOW TO USE duy nhat.
+[DA LAM]: gop HUONGDAN-ESP-LOG.txt + HUONGDAN-ESP-LOG-v2.txt thanh HOW TO USE.txt
+  (v2 + hanh trinh day du) -> xoa 2 file cu. Tu nay moi lan xong: tao HOW moi, xoa HOW cu.

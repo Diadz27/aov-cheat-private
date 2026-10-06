@@ -1,0 +1,37 @@
+HOW TO USE — BẢN mod164-esp-v2.ipa (cập nhật sau mỗi lần xong việc, luôn chỉ giữ 1 file này)
+Mục đích: 1 lần duy nhất — kiểm tra bản đọc ESP có sống + đọc đúng trên máy thật.
+
+0. CHUẨN BỊ
+- Máy trống ít nhất 2GB. Dùng acc RÁC (không acc chính, không leo rank mod).
+- Giữ nguyên game/iOS, đừng update gì trong lúc test.
+- File: mod164-esp-v2.ipa (~215MB). Chép vào máy qua cáp USB (Files/3uTools).
+
+1. KÝ (ESign, cert mua)
+- Import cert .p12 + mobileprovision trước.
+- Import IPA → chọn cert mua → BundleID GIỮ NGUYÊN → KHÔNG tick inject thêm
+  (dylib đã nằm sẵn trong máy) → Sign → Install.
+
+2. MỞ LẦN ĐẦU (iOS 26)
+- Nếu báo Nhà phát triển Không đáng tin: Cài đặt → Cài đặt chung → tìm
+  "VPN & Quản lý thiết bị" → chọn cert → Tin cậy → Xác minh. Rồi mở lại game.
+
+3. TẢI GÓI (điểm từng văng — đọc kỹ)
+- Bật WiFi, tắt app nền khác. Mở game, đợi thanh tải chạy.
+- NẾU VĂNG: ghi lại văng ở bao nhiêu % (con số này quan trọng nhất), mở lại
+  cho tải tiếp (nó resume, không mất gì). Văng 2–3 lần cùng 1 % thì dừng.
+- Văng lúc tải gói chưa chắc do hack (bản Unity cũ của game vốn hay văng
+  khúc này). Cứ bình tĩnh lấy số liệu, đừng kết luận vội.
+
+4. VÀO TRẬN (đúng mode mới đủ số)
+- Đấu 5v5 THƯỜNG (không 1v1/3v3/luyện tập). Ở yên 3–5 phút (thua/AFK đều
+  được, đừng thoát sớm). Xong vuốt tắt game hẳn.
+
+5. KÉO 2 FILE LOG (3uTools)
+- Cắm cáp → 3uTools → Thiết bị → Ứng dụng → Liên Quân → Documents.
+- Kéo về: sync_state.txt (bản ghi chính) + alive.txt (nhịp tim).
+- Mở bằng Notepad: dòng đầu UL-1.64 ... n=10 là đẹp. Gửi NGUYÊN FILE cho tao.
+
+6. ĐỌC NHANH (tự xem trước cũng được)
+- H camp=1 ... = phe xanh, camp=2 phe còn lại. hp = máu, pos = tọa độ.
+- n=0 hoài = chain chưa thông (vẫn gửi tao). V6HIT = thưởng thêm.
+- Xong là hết. Không cần trận thứ 2.
