@@ -142,4 +142,9 @@ ESign non-jailbreak. Lock version 1.64.
       thuộc nhất đúng triệu chứng. Nghi: Jetsam/game-base > dylib > ký (loại).
 - [x] Hardening sau crash: alive.txt (đèn báo sống mỗi 25 tick) + pre-battle backoff
       1s (gần 0 tải lúc loading/download); giữ nguyên logic ESP.
+- [x] B1→B4 một mạch (audit 29 lỗi E1-E29): v6 chunk 64KB (hết liệt), log tmp+rename,
+      camp giữ 1..8 có lý do (mode khác), mảng heroes[64], alive cả lúc đánh, khóa
+      layout 25 tick, name single-copy; repack: chặn LC trùng, patch-trước-inject-sau,
+      giữ nguyên metadata zip (method/quyền), cảnh báo ký ESign; workflow: job RELEASE,
+      retention 90d, bỏ UIKit thừa. Dead mem_read_* giữ (warning only).
 - [ ] aimbot/macro + antiban nâng cao (conditional)

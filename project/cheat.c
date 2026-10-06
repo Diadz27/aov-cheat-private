@@ -77,6 +77,8 @@ static bool actor_read(uintptr_t actor, HeroData *hd, int use_bin) {
     uintptr_t cfg = mem_safe_ptr(actor + L_ACT_CONFIG);
     if (!cfg) return false;
     uint32_t camp = mem_safe_u32(cfg + CFG_CAMP);
+    // accept 1..8 (5v5 = 1v2, other modes use more camps; never hardcode self).
+    // garbage already excluded by type/copy/hp/pos gates above.
     if (camp < 1 || camp > 8) return false;
     uintptr_t vpc = mem_safe_ptr(actor + L_ACT_VALUE);
     if (!vpc) return false;
@@ -103,11 +105,17 @@ static bool actor_read(uintptr_t actor, HeroData *hd, int use_bin) {
         int lo = use_bin ? STR_BIN_LEN : STR_STD_LEN;
         int co = use_bin ? STR_BIN_CHARS : STR_STD_CHARS;
         int32_t len = mem_safe_i32(ns + (uint32_t)lo);
-        if (len > 0 && len <= STR_MAX && mem_probe(ns + (uint32_t)co, (size_t)len * 2)) {
-            int k;
-            for (k = 0; k < len && k < 63; k++)
-                hd->name[k] = (char)(mem_safe_u16(ns + (uint32_t)co + (uint32_t)k * 2) & 0xFF);
-            hd->name[k] = '\0';
+        if (len > 0 && len <= STR_MAX) {
+            // single-copy then convert (no 64x probe loop)
+            uint16_t buf[64];
+            size_t want = (size_t)len * 2;
+            if (want > sizeof(buf)) want = sizeof(buf);
+            if (mem_copy_bytes(ns + (uint32_t)co, buf, want)) {
+                int k, m = (int)(want / 2);
+                for (k = 0; k < m && k < 63; k++)
+                    hd->name[k] = (char)(buf[k] & 0xFF);
+                hd->name[k] = '\0';
+            }
         }
     }
     return true;
@@ -126,7 +134,7 @@ static int walk_hyp(uintptr_t heroes, HeroData *out, int use_bin) {
     int32_t arrlen = mem_safe_i32(items + al);
     if (arrlen < n || arrlen > LIST_MAX_COUNT + 8) return 0; // length cross-check
     int c = 0;
-    for (int i = 0; i < n && c < 20; i++) {
+    for (int i = 0; i < n && c < 64; i++) {
         uintptr_t actor = mem_safe_ptr(items + ad + (uintptr_t)i * HANDLE_STRIDE + HANDLE_OBJ);
         if (!actor) continue;
         HeroData hd;
@@ -153,7 +161,7 @@ static int scan_heroes(HeroData *out) {
             return c;
         }
     }
-    if (++g_zero_ticks > 250) { g_layout_list = -1; g_zero_ticks = 0; } // re-open
+    if (++g_zero_ticks > 25) { g_layout_list = -1; g_zero_ticks = 0; } // re-open
     return 0;
 }
 
@@ -179,9 +187,10 @@ static void v6_hunt(FILE *f) {
             VM_REGION_BASIC_INFO, (vm_region_info_t)&info, &info_count, &obj);
         if (kr != KERN_SUCCESS) break;
         if ((info.protection & VM_PROT_READ) && sz >= 4096 && sz < 64 * 1024 * 1024) {
-            // 1MB chunks, probe each (no fault on unmapped subpages)
-            for (uintptr_t base = addr; base < addr + sz; base += 1048576) {
-                size_t clen = 1048576;
+            // 64KB chunks: mem_probe caps len at 0x10000, so chunks must fit
+            // (1MB chunks made the whole hunt a silent no-op — E1)
+            for (uintptr_t base = addr; base < addr + sz; base += 65536) {
+                size_t clen = 65536;
                 if (base + clen > addr + sz) clen = (size_t)(addr + sz - base);
                 if (!mem_probe(base, clen)) continue;
                 for (unsigned ti = 0; ti < sizeof(V6_NAMES) / sizeof(V6_NAMES[0]); ti++) {
@@ -225,10 +234,12 @@ static void *reader_loop(void *arg) {
     char logpath[512];
     docs_path(logpath, sizeof(logpath), SYNC_LOG_NAME);
     if (!logpath[0]) return NULL;
+    char tmppath[520];
+    snprintf(tmppath, sizeof(tmppath), "%s.tmp", logpath);
     char alivepath[512];
     docs_path(alivepath, sizeof(alivepath), "alive.txt");
 
-    HeroData heroes[20];
+    HeroData heroes[64];
     int tick = 0;
     int idle_ticks = 0;
 #ifndef RELEASE_BUILD
@@ -255,7 +266,7 @@ static void *reader_loop(void *arg) {
             idle_ticks = 0;
         }
 #ifndef RELEASE_BUILD
-        FILE *f = fopen(logpath, "w"); // rewrite each tick: bounded size
+        FILE *f = fopen(tmppath, "w"); // tmp + rename: crash mid-write never empties log
         if (f) {
             fprintf(f, "UL-1.64 base=0x%lx layout=%d tick=%d n=%d\n",
                 g_il2cpp_base, g_layout_list, tick, n);
@@ -267,6 +278,14 @@ static void *reader_loop(void *arg) {
             }
             if (n > 0 && !v6_done) { v6_hunt(f); v6_done = true; }
             fclose(f);
+            rename(tmppath, logpath);
+        }
+        if (alivepath[0] && (tick % 25) == 0) { // heartbeat in-battle too
+            FILE *a = fopen(alivepath, "w");
+            if (a) {
+                fprintf(a, "tick=%d base=0x%lx n=%d\n", tick, g_il2cpp_base, n);
+                fclose(a);
+            }
         }
 #else
         (void)tick; (void)n;

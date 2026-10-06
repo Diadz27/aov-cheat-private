@@ -246,3 +246,15 @@ Tóm tắt: magic KHÔNG TỒN TẠI trong RAM. Nhánh magic-hunt đóng sổ. C
 [DANG VUONG]: can (1) sync_state.txt/alive.txt co ton tai khong, (2) test doi chung
   mod164-v5.ipa cung goi 63MB, (3) kgvn-*.ips 20 dong dau.
 [NEXT]: commit+push -> CI build -> user tai dylib -> repack -> test lai + thu thap 3 bang chung.
+
+---
+[PHIEN]: buildmode-B1B4-01 - ngay 2026-10-06. Chay B1-B4 mot mach (audit E1-E29).
+[FLAW LIST] (rut gon): BLOCKER v6 liet (chunk 1MB > cap probe) - FIXED 64KB;
+  repack trung LC + patch-sau-inject + mat metadata zip - FIXED (guard/order/preserve);
+  dau vet binary VERIFY - ke hoach RELEASE strip; MAJOR camp/mang64/alive/layout25/
+  tmp+rename - FIXED; camp giu 1..8 (ly do mode, validation san da loc rac);
+  UIKit thua - REMOVED; retention 7d - len 90d + job RELEASE.
+[CRASH 63MB] (web intel): Unity 2022.3.5f1 co bug AssetBundle iOS (IN-58744/UUM-120877,
+  va o .14+, game dung .5f1) + Jetsam spike khi decompress -> nghi pham so 1, khong
+  lien quan dylib. mincore/fopen-1Hz: khong tien le gay crash foreground.
+[NEXT]: commit+push -> CI build VERIFY+RELEASE -> tai 2 dylib -> repack esp v2.

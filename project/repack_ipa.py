@@ -97,6 +97,13 @@ def inject_dylib(binary_path, dylib_install):
     name_bytes += b'\x00' * ((8 - len(name_bytes) % 8) % 8)
     cmdsize = 24 + len(name_bytes)
 
+    # dup-inject guard (E22): rerun must not append a 2nd identical LC
+    marker = dylib_install.encode('utf-8') + b'\x00'
+    hit = data.find(marker)
+    if 0 <= hit < (info['min_fileoff'] or 0):
+        print(f'[=] LC already present (@{hit}) — skip inject (idempotent)')
+        return True
+
     if info['min_fileoff'] is None:
         print('[!] Không tìm được segment fileoff — binary lạ, dừng lại')
         return False
@@ -123,7 +130,9 @@ def inject_dylib(binary_path, dylib_install):
 
     print(f'[+] Injected in-place: {dylib_install}')
     if info['has_sig']:
-        print('[!] Binary có chữ ký cũ — NHỚ ký lại: ldid -S <binary> (trên mac)')
+        print('[!] Binary có chữ ký cũ — ESign PHẢI ký lại toàn bộ '
+              '(app + Frameworks/*) cùng cert/TeamID, nếu không chết lúc mở. '
+              'ldid -S <binary> chỉ dùng trên mac dev.')
     return True
 
 
@@ -155,6 +164,21 @@ def repack(input_ipa, dylib_path, output_ipa, use_launcher=False,
 
         fw_dir = os.path.join(app_dir, 'Frameworks')
         os.makedirs(fw_dir, exist_ok=True)
+
+        # patch TRƯỚC, inject SAU (E23): patch fail thì chưa đụng gì tới binary
+        if map_patches:
+            uf_path = os.path.join(app_dir, 'Frameworks',
+                                   'UnityFramework.framework', 'UnityFramework')
+            if os.path.isfile(uf_path):
+                print('[*] Applying map hack patches...')
+                from apply_patches import apply_patches as _patch
+                if not _patch(uf_path):
+                    print('[!] Patch FAILED — aborting repack (binary untouched)')
+                    return False
+                print('[+] Patches applied to UnityFramework')
+            else:
+                print('[!] UnityFramework not found — skip patches')
+
         dylib_dest = os.path.join(fw_dir, os.path.basename(dylib_path))
         shutil.copy2(dylib_path, dylib_dest)
         print(f'[+] Copied dylib to {dylib_dest}')
@@ -163,27 +187,34 @@ def repack(input_ipa, dylib_path, output_ipa, use_launcher=False,
         if not inject_dylib(binary, dylib_install):
             return False
 
-        if map_patches:
-            uf_path = os.path.join(app_dir, 'Frameworks',
-                                   'UnityFramework.framework', 'UnityFramework')
-            if os.path.isfile(uf_path):
-                print('[*] Applying map hack patches...')
-                from apply_patches import apply_patches as _patch
-                if not _patch(uf_path):
-                    print('[!] Patch FAILED — aborting repack')
-                    return False
-                print('[+] Patches applied to UnityFramework')
-            else:
-                print('[!] UnityFramework not found — skip patches')
-
         print(f'[*] Repacking to {output_ipa}')
+        # preserve original entry metadata (method/perms); new files get 755 (E21)
+        orig_info = {}
+        with zipfile.ZipFile(input_ipa, 'r') as z0:
+            for info in z0.infolist():
+                orig_info[info.filename] = info
         with zipfile.ZipFile(output_ipa, 'w', zipfile.ZIP_DEFLATED) as z:
             for root, _, files in os.walk(tmp):
                 for file in files:
                     if file.endswith('.bak'):
                         continue  # backup patcher, không đóng gói
                     fp = os.path.join(root, file)
-                    z.write(fp, os.path.relpath(fp, tmp))
+                    arc = os.path.relpath(fp, tmp).replace(os.sep, '/')
+                    oi = orig_info.get(arc)
+                    with open(fp, 'rb') as f:
+                        blob = f.read()
+                    if oi is not None:
+                        zi = zipfile.ZipInfo(arc, date_time=oi.date_time)
+                        zi.compress_type = oi.compress_type
+                        zi.external_attr = oi.external_attr
+                        zi.create_system = oi.create_system
+                        z.writestr(zi, blob)
+                    else:
+                        zi = zipfile.ZipInfo(arc)
+                        zi.compress_type = zipfile.ZIP_DEFLATED
+                        zi.external_attr = (0o100755 << 16)
+                        zi.create_system = 3
+                        z.writestr(zi, blob)
 
         print(f'[+] Done: {output_ipa}')
         return True

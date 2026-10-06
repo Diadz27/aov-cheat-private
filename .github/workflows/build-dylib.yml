@@ -25,7 +25,6 @@ jobs:
             -arch arm64 \
             -dynamiclib \
             -isysroot $(xcrun -sdk iphoneos --show-sdk-path) \
-            -framework UIKit \
             -framework Foundation \
             -lm \
             -O2 \
@@ -59,6 +58,26 @@ jobs:
           file meta_extract_v5.dylib
           otool -L meta_extract_v5.dylib
           ls -lh meta_extract_v5.dylib
+      - name: Compile libUnityHelper RELEASE
+        run: |
+          cd project
+          xcrun -sdk iphoneos clang \
+            -arch arm64 \
+            -dynamiclib \
+            -isysroot $(xcrun -sdk iphoneos --show-sdk-path) \
+            -framework Foundation \
+            -lm \
+            -O2 \
+            -Wall \
+            -Wno-unused-parameter \
+            -fvisibility=hidden \
+            -Wl,-x \
+            -DRELEASE_BUILD \
+            -mios-version-min=16.0 \
+            -o libUnityHelper-release.dylib cheat.c
+          echo "[+] RELEASE compile done"
+          file libUnityHelper-release.dylib
+          ls -lh libUnityHelper-release.dylib
       - name: Verify binary
         run: |
           cd project
@@ -73,18 +92,25 @@ jobs:
         with:
           name: libunityhelper-arm64
           path: project/libUnityHelper.dylib
-          retention-days: 7
+          retention-days: 90
+
+      - name: Upload RELEASE artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: libunityhelper-release-arm64
+          path: project/libUnityHelper-release.dylib
+          retention-days: 90
 
       - name: Upload extractor artifact
         uses: actions/upload-artifact@v4
         with:
           name: meta-extract-dylib-arm64
           path: project/meta_extract.dylib
-          retention-days: 7
+          retention-days: 90
 
       - name: Upload meta_extract_v5
         uses: actions/upload-artifact@v4
         with:
           name: meta-extract-v5-dylib-arm64
           path: project/meta_extract_v5.dylib
-          retention-days: 7
+          retention-days: 90
