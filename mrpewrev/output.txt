@@ -296,3 +296,11 @@ Tóm tắt: magic KHÔNG TỒN TẠI trong RAM. Nhánh magic-hunt đóng sổ. C
 [PHIEN]: buildmode-howtouse-01 - ngay 2026-10-07. Quy tac HOW TO USE duy nhat.
 [DA LAM]: gop HUONGDAN-ESP-LOG.txt + HUONGDAN-ESP-LOG-v2.txt thanh HOW TO USE.txt
   (v2 + hanh trinh day du) -> xoa 2 file cu. Tu nay moi lan xong: tao HOW moi, xoa HOW cu.
+
+---
+[PHIEN]: buildmode-v2crash-01 - user bao mod164-esp-v2.ipa VAN VANG khi tai goi.
+[NHAN]: dung du kien chan doan (v2 chi co backoff, chua co vm_read fix). Loi cua tao:
+  khong dan nhan v2 la ban chan doan ngay tu dau -> user tuong v2 la ban chua.
+[DA LAM]: HOW TO USE ghi ro trang thai v2 (dang loi, cho v3); memory L25.
+[NEXT]: CI build v3 (vm_read) -> user tai dylib moi -> repack v3 -> test dung goi cu.
+  V3 khong vang -> khoa ban. V3 van vang -> thang R0-R3 (cat dan tung phan).

@@ -170,5 +170,10 @@ ESign non-jailbreak. Lock version 1.64.
     khong an decl co '{ }' cung dong; (c) get_actorManager thuoc ve KyriosFramework
     (KHONG phai ActorManager) - V_MGR_SLOT cu tu ham nhan nham -> danh UNKNOWN,
     view path hoan chinh thuc (v1 khong dung view). M1 vm_read retrofit committed.
+25. L25 (user báo): mod164-esp-v2.ipa VẪN VĂNG lúc tải gói. ĐÚNG DỰ KIẾN CHẨN ĐOÁN:
+    v2 chỉ có backoff (thu hẹp cửa race), chưa có vm_read fix (v3 mới có).
+    Lỗi truyền đạt của tao: không dán nhãn v2 là "bản chẩn đoán, vẫn có thể văng"
+    ngay từ đầu → user tưởng v2 là bản chữa. HOW TO USE đã sửa, ghi rõ trạng thái
+    từng bản. Fix thật = v3 (đã push, chờ CI + user tải dylib).
 24. L24 LUẬT MỚI (user): mỗi lần xong → tạo HOW TO USE.txt duy nhất, XÓA giấy cũ.
     Đã gộp 2 HUONGDAN thành HOW TO USE.txt (v2 + vá hành trình) + xóa 2 file cũ.
