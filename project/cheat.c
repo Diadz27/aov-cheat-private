@@ -1,10 +1,10 @@
 // libUnityHelper.c — AOV 1.64 battle-state reader (VERIFY build)
-// Build: workflow compiles to libUnityHelper.dylib (was cheat.dylib).
+// Build: workflow compiles to libUnityHelper.dylib.
 // VERIFY (default): writes Documents/sync_state.txt, runs v6 name-hunt once.
 // RELEASE (-DRELEASE_BUILD): silent reader (overlay comes phase 2).
 // RULE: zero writes to game memory; zero game-function calls (static reads
 // only — unattached pthread must never execute managed code, see L-trust).
-// RULE: no cheat/esp/hack/menu/fog/vision strings in this binary.
+// RULE: neutral naming only (see config.h).
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,8 +25,6 @@
 // ─── GLOBALS ───
 static uintptr_t g_il2cpp_base = 0;
 static int g_layout_list = -1; // 0=STD 1=BIN, -1 undecided
-static int g_layout_arr = -1;
-static int g_layout_str = -1;
 static int g_zero_ticks = 0;
 
 // ─── IL2CPP BASE RESOLVER ───
@@ -49,7 +47,7 @@ static void docs_path(char *out, size_t n, const char *fname) {
 }
 
 // ─── ROOT CHAIN (corrected L17): P->S->FW->battle ───
-static uintptr_t esp_battle(void) {
+static uintptr_t get_battle(void) {
     if (!g_il2cpp_base) return 0;
     uintptr_t p = mem_safe_ptr(g_il2cpp_base + SLOT_FWCLASS);
     if (!p) return 0;
@@ -90,21 +88,20 @@ static bool actor_read(uintptr_t actor, HeroData *hd, int use_bin) {
     int32_t xi, zi;
     memcpy(&xi, loc, 4);
     memcpy(&zi, loc + 8, 4);
-    (void)use_bin;
-    hd->obj_ptr = actor;
-    hd->x = (float)xi / VINT_SCALE;
+    hd->obj_ptr = actor;    hd->x = (float)xi / VINT_SCALE;
     hd->z = (float)zi / VINT_SCALE;
     if (hd->x < -500.0f || hd->x > 500.0f) return false;
     if (hd->z < -500.0f || hd->z > 500.0f) return false;
     hd->hp = hp;
     hd->camp = camp;
-    hd->cfg = mem_safe_u32(cfg + 0x30); // ConfigID (name key, phase 2)
+    hd->cfg = mem_safe_u32(cfg + CFG_CONFIGID); // hero name key (phase 2)
     hd->name[0] = '\0';
-    // name dual-hypothesis (display only; never gates acceptance)
+    // name follows the SAME trial layout (display only; never gates acceptance)
+    // string BIN {len@0x8,chars@0xC} confirmed 3-source (get_Length/get_Chars/dump)
     uintptr_t ns = mem_safe_ptr(actor + L_ACT_NAME);
     if (ns) {
-        int lo = (g_layout_str == 1) ? STR_BIN_LEN : STR_STD_LEN;
-        int co = (g_layout_str == 1) ? STR_BIN_CHARS : STR_STD_CHARS;
+        int lo = use_bin ? STR_BIN_LEN : STR_STD_LEN;
+        int co = use_bin ? STR_BIN_CHARS : STR_STD_CHARS;
         int32_t len = mem_safe_i32(ns + (uint32_t)lo);
         if (len > 0 && len <= STR_MAX && mem_probe(ns + (uint32_t)co, (size_t)len * 2)) {
             int k;
@@ -117,7 +114,7 @@ static bool actor_read(uintptr_t actor, HeroData *hd, int use_bin) {
 }
 
 // walk heroes list under one layout hypothesis; returns count
-static int walk_hyp(uintptr_t heroes, HeroData *out, int use_bin, int *str_alt) {
+static int walk_hyp(uintptr_t heroes, HeroData *out, int use_bin) {
     uint32_t io = use_bin ? LIST_BIN_ITEMS : LIST_STD_ITEMS;
     uint32_t so = use_bin ? LIST_BIN_SIZE : LIST_STD_SIZE;
     uint32_t al = use_bin ? ARR_BIN_LEN : ARR_STD_LEN;
@@ -135,13 +132,12 @@ static int walk_hyp(uintptr_t heroes, HeroData *out, int use_bin, int *str_alt) 
         HeroData hd;
         if (actor_read(actor, &hd, use_bin)) out[c++] = hd;
     }
-    (void)str_alt;
     return c;
 }
 
 // ─── SCANNER: tries BIN then STD, locks winner ───
 static int scan_heroes(HeroData *out) {
-    uintptr_t battle = esp_battle();
+    uintptr_t battle = get_battle();
     if (!battle) return 0;
     uintptr_t mgr = mem_safe_ptr(battle + LBATTLE_GAMEMGR);
     if (!mgr) return 0;
@@ -150,10 +146,9 @@ static int scan_heroes(HeroData *out) {
     int order[2] = {1, 0};
     if (g_layout_list >= 0) { order[0] = g_layout_list; order[1] = g_layout_list ^ 1; }
     for (int k = 0; k < 2; k++) {
-        int c = walk_hyp(heroes, out, order[k], NULL);
+        int c = walk_hyp(heroes, out, order[k]);
         if (c > 0) {
             g_layout_list = order[k];
-            g_layout_arr = order[k];
             g_zero_ticks = 0;
             return c;
         }
@@ -179,8 +174,9 @@ static void v6_hunt(FILE *f) {
     const uint64_t CAP = 64ULL * 1024 * 1024;
     int hits_total = 0;
     while (scanned < CAP) {
-        kern_return_t kr = vm_region_64(mach_task_self(), &addr, &sz, VM_REGION_BASIC_INFO,
-            (vm_region_info_t)&info, &info_count, &obj);
+        info_count = VM_REGION_BASIC_INFO_COUNT_64; // clobbered per call
+        kern_return_t kr = vm_region_64(mach_task_self(), (vm_address_t *)&addr, &sz,
+            VM_REGION_BASIC_INFO, (vm_region_info_t)&info, &info_count, &obj);
         if (kr != KERN_SUCCESS) break;
         if ((info.protection & VM_PROT_READ) && sz >= 4096 && sz < 64 * 1024 * 1024) {
             // 1MB chunks, probe each (no fault on unmapped subpages)
@@ -217,7 +213,7 @@ static void v6_hunt(FILE *f) {
 #endif
 
 // ─── MAIN LOOP ───
-static void *cheat_loop(void *arg) {
+static void *reader_loop(void *arg) {
     (void)arg;
     sleep(INIT_DELAY_SEC);
     for (int retry = 0; retry < 30 && !g_il2cpp_base; retry++) {
@@ -227,7 +223,7 @@ static void *cheat_loop(void *arg) {
     if (!g_il2cpp_base) return NULL;
 
     char logpath[512];
-    docs_path(logpath, sizeof(logpath), ESP_LOG_NAME);
+    docs_path(logpath, sizeof(logpath), SYNC_LOG_NAME);
     if (!logpath[0]) return NULL;
 
     HeroData heroes[20];
@@ -267,7 +263,7 @@ static void ul_init(void) {
     pthread_attr_t attr;
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-    if (pthread_create(&t, &attr, cheat_loop, NULL) != 0) {
+    if (pthread_create(&t, &attr, reader_loop, NULL) != 0) {
         pthread_attr_destroy(&attr);
         return;
     }

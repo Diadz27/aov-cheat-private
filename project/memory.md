@@ -83,7 +83,13 @@ ESign non-jailbreak. Lock version 1.64.
     76360 acc ≥3yr; khung hack map 3yr→perm; wave theo tháng, không kick ngay;
     đọc thuần vô hình server, report là sát thủ #1. Build VERIFY≠RELEASE.
     Tooling: SKIP CodeGraph/speckit/repomix (repo nhỏ, 70MB dump giết context);
-    GIỮ memory.md+TodoWrite+3 script. Env user: iOS 26+ / cert mua / giữ version.
+    GIỮ memory.md+TodoWrite+3 script.     Env user: iOS 26+ / cert mua / giữ version.
+22. L22 (quyết định khóa): HYBRID-PLUS giữ nguyên; trắng BỎ hẳn (dự phòng trong RISK);
+    tool riêng KHÔNG build (v6 trong dylib thay thế); push build NỚI (tự push commit
+    build); ống season_update.py ĐỂ phase sau (tránh scope creep); string BIN
+    {len@0x8,chars@0xC} CONFIRMED 3 nguồn (get_Length/get_Chars/dump) — code đọc
+    sai 0x10/0x14 đã sửa + khóa str theo trial; List BIN {items@0x8,size@0x10}
+    (BetterList leaf + census 1016v363); array BIN giữ (2 điểm disasm).
 
 ## Quyết định đang hiệu lực
 - Lock 1.64. ACE escalate theo lunar (stealth → RE anogs/anort → patch tĩnh).

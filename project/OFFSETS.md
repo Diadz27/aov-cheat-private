@@ -15,7 +15,7 @@ Dead values move to DEAD section, never delete.
 | L_ACT_TYPE/ISCOPY/LOC/VALUE/CONFIG | 68/2C/E0/338/378 | DUMP+DISASM | YELLOW |
 | VPC_HP_A/B xor | 50/54 | DISASM+DUMP | YELLOW |
 | CFG_CAMP | 0x38 | DUMP | YELLOW |
-| STR layouts | STD{10,14}/BIN{08,0C} | CALIB | YELLOW |
+| STR layouts | BIN{08,0C} confirmed 3-source; STD fallback | CALIB | YELLOW |
 | FN_ACTIVE_BATTLE 0x6E30808 | ref only (no calls) | DISASM | YELLOW |
 | Skill CD fields | TBD | — | PHASE2 |
 | Camera/W2S | TBD | — | PHASE2 |

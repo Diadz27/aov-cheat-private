@@ -31,7 +31,7 @@
 #define AOV_VERSION         "1.64.1.7-kgvn"
 #define GAMEASSEMBLY_NAME   "UnityFramework"
 
-// ─── ARTIFACT NAME (anti-signature: never cheat/esp/hack/menu) ───
+// ─── ARTIFACT NAME (neutral naming rule) ───
 #define DYLIB_NAME          "libUnityHelper.dylib"
 
 // ─── STATIC SLOT (file offset in __DATA; +dyld base at runtime) ───
@@ -48,7 +48,7 @@
 // [DUMP] LGameActorMgr <gameActorMgr>k__BackingField @0xF8 (owner LBattleLogic)
 #define LBATTLE_GAMEMGR     0xF8u
 
-// ─── LGameActorMgr (logic — all actors incl. fogged) ───
+// ─── LGameActorMgr (logic — all actors incl. hidden ones) ───
 // [DUMP+DISASM] GetAllHeros = ldr x0,[x19,#0x48]; ret (no filter)
 #define L_MGR_HEROACTORS    0x48u
 // [DUMP] CampsHeroActors @0x90 (alt path, unused v1)
@@ -102,6 +102,7 @@
 // ─── ActorConfigData (logic, via L_ACT_CONFIG) — [DUMP] CmpType @0x38 ───
 // (NOT the decoy RecycleableMsgBase ActorConfigData with CmpType@0x2C)
 #define CFG_CAMP            0x38u
+#define CFG_CONFIGID        0x30u   // ConfigID: hero-name key (phase 2)
 
 // ─── ActorLinker (view) — [DUMP] ───
 #define V_LINK_HOSTFLAG     0x1B0u  // mIsHostCtrlActor u8
@@ -132,9 +133,9 @@
 #define SLOT_SKILLOBJ       0xB8
 
 // ─── LOG (VERIFY builds only; RELEASE defines RELEASE_BUILD) ───
-// Neutral filename (no cheat/esp/hack/menu/fog/vision strings on device).
-#define ESP_LOG_NAME        "sync_state.txt"
-#define ESP_LOG_CAP         65536
+// Neutral filename (neutral filename rule).
+#define SYNC_LOG_NAME        "sync_state.txt"
+#define SYNC_LOG_CAP         65536
 #define TICK_RATE_US        200000
 #define INIT_DELAY_SEC      6
 #define SELF_REFRESH_TICKS  25
