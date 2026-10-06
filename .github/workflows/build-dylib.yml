@@ -18,7 +18,7 @@ jobs:
       - name: Show Xcode version
         run: xcodebuild -version
 
-      - name: Compile cheat.dylib
+      - name: Compile libUnityHelper.dylib
         run: |
           cd project
           xcrun -sdk iphoneos clang \
@@ -31,8 +31,10 @@ jobs:
             -O2 \
             -Wall \
             -Wno-unused-parameter \
+            -fvisibility=hidden \
+            -Wl,-x \
             -mios-version-min=16.0 \
-            -o cheat.dylib cheat.c
+            -o libUnityHelper.dylib cheat.c
           xcrun -sdk iphoneos clang \
             -arch arm64 \
             -dynamiclib \
@@ -60,17 +62,17 @@ jobs:
       - name: Verify binary
         run: |
           cd project
-          file cheat.dylib meta_extract.dylib
-          otool -L cheat.dylib
+          file libUnityHelper.dylib meta_extract.dylib
+          otool -L libUnityHelper.dylib
           otool -L meta_extract.dylib
-          otool -h cheat.dylib
-          ls -lh cheat.dylib meta_extract.dylib
+          otool -h libUnityHelper.dylib
+          ls -lh libUnityHelper.dylib meta_extract.dylib
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: cheat-dylib-arm64
-          path: project/cheat.dylib
+          name: libunityhelper-arm64
+          path: project/libUnityHelper.dylib
           retention-days: 7
 
       - name: Upload extractor artifact

@@ -180,3 +180,41 @@ Tóm tắt: magic KHÔNG TỒN TẠI trong RAM. Nhánh magic-hunt đóng sổ. C
 [FILES PHIÊN]: out29/dump.cs + il2cpp.h + script.json + stringliteral.json (TEMP aov164);
   project/config.h + cheat.c + memory.h (sửa); TEMP scripts: h9_decrypt.py, dumpq.py,
   disx.py, ccheck.py.
+
+---
+[PHIÊN]: buildmode-P0-01 — ngày 2026-10-06. BUILD MODE mở. Thực thi P0: viết lại
+  config.h/cheat.c/memory.h theo chain ĐÚNG + dual-hypothesis + đổi tên dylib.
+[NGƯỜI DÙNG NÓI] (nguyên văn, các lượt dồn): quy tắc đoạn chat + 5 vòng tự học sâu
+  (High Cohesion agents, mọi nguồn) + "Ổn chưa" + "chắc là không còn gì học không" +
+  env: "26+ / cert mua gói xịn / ch update gì" + chốt hướng (lần cuối): tao quyết
+  HYBRID-PLUS; user hỏi lại thì tao giữ nguyên quyết định, chỉ bổ sung phép thử mới.
+[ĐÃ LÀM]:
+1. Vòng 6 (3 agents + tay tao): Unity 2022.3.5f1 (3 hit) + static_fields@0xB8 đúng
+   source 2022.3.5f1 + instance là static DUY NHẤT + SetMain ghi [+0x68] đúng +
+   kế thừa LMain→LFrame→LBattle bắc cầu + xanh=camp 1 (cmp w19,#1) +
+   predicate hero thật type@0x68==0 && copy@0x2C==0 (routing Hero+0x48/Organ+0x60/
+   Monster+0x70/Bullet+0x50/Block+0x58 từ AddActor) + L7 hạ thành WEAK (không có
+   biên bản trắng-sạch; xe vẫn = mod base đã chứng minh) + anchors METADATA-ONLY
+   (7/8 tên 0 hit binary → v6 phải tìm bảng RAM, thử lại tên-thật đáng giá).
+2. Phép thử il2cpp.h (tay tao): template khai classic (bounds@0x10/len@0x18/data@0x20)
+   NHƯNG là mẫu dumper tự phát, không phải số đo → không lật được 2 điểm disasm.
+   Giả thuyết thống nhất: header object build này 8B (FogOfWar._enable@0x8).
+   Giải pháp vào code: dual-hypothesis + log LAYOUT= (máy tự chọn).
+3. P0 code: config.h (tầng nhãn, chain P→S→FW→battle, dual List/Array/String,
+   libUnityHelper.dylib, sync_state.txt); memory.h (probe overflow-cap, safe
+   u16/u64, copy-bytes, writers sau ifdef); cheat.c viết lại: static-read KHÔNG
+   gọi hàm (view static có bl-transform generic-sharing → KHÔNG replicate, self
+   để ngỏ trung thực), lọc clone, camp 1..8, hp xor single-u64, pos copy 12B,
+   log rewrite-mỗi-tick (bounded), v6 tên-thật chunked-probe non-fatal,
+   VERIFY/RELEASE, constructor check rc. Workflow: libUnityHelper + strip + hidden.
+4. 4 ledger mới: CHAIN.md / OFFSETS.md / SEASON.md / RISK.md. memory.md L17-L21.
+   ccheck strict: chỉ còn hằng Apple SDK + RELEASE_BUILD + V6_NAMES (đều thật).
+[VẤN ĐỀ GẶP]: grep stringliteral flood (học: pattern hẹp khi grep file lớn);
+  disx.py argv quirk (1 địa chỉ/lần); view-bl không replicate được (ghi rõ, không cố).
+[ĐANG VƯỚNG]: (1) push CHƯA duyệt → CI chưa build → chưa có dylib → P4 nghẽn;
+  (2) 1 log duy nhất (LAYOUT/V6HIT/n); (3) self-resolve phase 2.
+[NEXT]: duyệt push → CI xanh → tải libUnityHelper → repack mod164-esp.ipa →
+  verify PC → cất tủ + giấy 6 bước → DỪNG đợi 1 log.
+[FILES PHIÊN]: project/cheat.c + config.h + memory.h + memory.md (sửa);
+  project/CHAIN.md + OFFSETS.md + SEASON.md + RISK.md (mới);
+  .github/workflows/build-dylib.yml (đổi tên dylib + strip/hidden).

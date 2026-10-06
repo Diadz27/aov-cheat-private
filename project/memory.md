@@ -62,6 +62,28 @@ ESign non-jailbreak. Lock version 1.64.
 16. CHƯA VERIFY: List._items@0x10/_size@0x18 (STD mscorlib + guard runtime, chưa disasm
     riêng); toàn bộ chain chưa chạy trên máy thật (user dừng test). CI build dylib
     chỉ chứng minh compile, KHÔNG chứng minh offset đúng.
+17. L17: static_off từng tính SAI (0x13EEBE00 do cộng 2 lần page PC) — capstone in ADRP
+    là page TUYỆT ĐỐI. Số đúng: ActiveBattleLogic slot 0xD0BBE00, actorManager
+    0xD1082B0/2C0. Luật mới: cấm tính tay, mọi địa chỉ qua disx.py + segment-check.
+18. L18: static slot KHÔNG chứa LBattleLogic — trinh sát lùng KẺ GHI (Reset@0x6E304E4)
+    ra: slot=Il2CppClass* LFrameworkEditorProxy → +0xB8 static_fields →
+    [0]=LFramework* (sole static) → +0x68 _battleLogic (SetMain@0x4E04F10 ghi).
+    Luật: static slot phải có writer-disasm, không thì cấm dùng.
+19. L19: array/List header: sách (len@0x18/data@0x20) vs binary (len@0x10/data@0x18,
+    2 điểm disasm + stride-16 inline-Add). il2cpp.h là TEMPLATE dumper, không phải
+    số đo. Giải pháp: dual-hypothesis, máy tự chọn lúc chạy, log in LAYOUT=.
+    String layout cũng dual (tên chỉ để hiển thị). FogOfWar._enable@0x8 gợi ý
+    header object build này chỉ 8B — bỏ sách stock-Unity.
+20. L20 (sửa L7): "trắng văng, dylib vô can" là YẾU — không có biên bản trắng-sạch
+    (không số giây/Jetsam/ips), vụ văng duy nhất có giờ là bản CÓ dylib. Trắng =
+    CHƯA kiểm chứng (không phải đã chết). Xe = mod base (đã chứng minh sống).
+21. L21 anti-cheat/ban (số thật): binary link anogs/anort/DataDome + chuỗi dyld-enum +
+    MTML_INTEGRITY_DETECT → dylib lạ chắc chắn bị liệt kê/upload. Tên file là chữ
+    ký (đổi libUnityHelper.dylib, strip, hidden). Garena T7/2024: 87379 acc ≥6mo,
+    76360 acc ≥3yr; khung hack map 3yr→perm; wave theo tháng, không kick ngay;
+    đọc thuần vô hình server, report là sát thủ #1. Build VERIFY≠RELEASE.
+    Tooling: SKIP CodeGraph/speckit/repomix (repo nhỏ, 70MB dump giết context);
+    GIỮ memory.md+TodoWrite+3 script. Env user: iOS 26+ / cert mua / giữ version.
 
 ## Quyết định đang hiệu lực
 - Lock 1.64. ACE escalate theo lunar (stealth → RE anogs/anort → patch tĩnh).
@@ -88,5 +110,14 @@ ESign non-jailbreak. Lock version 1.64.
 - [ ] dump.cs → config.h → ESP dylib → gộp base → test
 - [x] Il2CppDumper → dump.cs (70.8MB) → mining offset → config.h 1.64 (verified chain)
 - [x] cheat.c ESP reader + mem_probe guards (compile chờ CI; runtime chưa test — user dừng test)
+- [x] Vòng tự học 1-5 (5 agents/lượt): thread-attach→static-read, adrp tuyệt đối,
+      writer-hunt khép chain, LC vừa 2984B/64B, ESign sống tới iOS 26, clone/camp/dead,
+      ban Garena số thật, pattern-scan thua dump+RVA, SKIP CodeGraph/speckit
+- [x] P0 build mode: config.h tầng nhãn + chain đúng + dual-hypothesis; cheat.c
+      static-read + lọc clone + camp động + log xoay vòng sync_state.txt + v6 tên-thật;
+      libUnityHelper.dylib (đổi tên, strip, hidden); 4 ledger CHAIN/OFFSETS/SEASON/RISK
 - [ ] skill CD fields (SkillSlot full block) + camera/W2S (phase 2)
+- [ ] self-resolve (view static có bl-transform, chưa replicate được — KHÔNG heuristic giả)
+- [ ] push commit → CI build libUnityHelper → tải về → repack mod164-esp.ipa (CHỜ DUYỆT PUSH)
+- [ ] 1 log sync_state.txt duy nhất (AFK 1 trận): LAYOUT=? V6HIT? n=?
 - [ ] aimbot/macro + antiban nâng cao (conditional)
