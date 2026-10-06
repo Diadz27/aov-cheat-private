@@ -258,3 +258,15 @@ Tóm tắt: magic KHÔNG TỒN TẠI trong RAM. Nhánh magic-hunt đóng sổ. C
   va o .14+, game dung .5f1) + Jetsam spike khi decompress -> nghi pham so 1, khong
   lien quan dylib. mincore/fopen-1Hz: khong tien le gay crash foreground.
 [NEXT]: commit+push -> CI build VERIFY+RELEASE -> tai 2 dylib -> repack esp v2.
+
+---
+[PHIEN]: buildmode-P1v2-01 - ngay 2026-10-07. Repack ESP v2 + RELEASE hygiene.
+[DA LAM]:
+1. Verify 2 dylib CI: VERIFY 67072B (co v6+log) vs RELEASE 66768B (sach v6, con sot
+   SYNC_LOG_NAME -> da gate: paths+alive+v6 hoan toan trong ifndef RELEASE).
+2. Repack mod164-esp-v2.ipa 214652570B/428 entries: only-added = 1 dylib, missing = 0,
+   LC 131, bytes identical. Push 129a45d (CI rebuild am trong nen).
+3. Phat hien moii tu audit: string BIN da CONFIRMED nhung code cu van doc STD truoc
+   (g_layout_str khong bao gio set) -> da sua trial truyen thang use_bin.
+[NEXT]: user ky v2 -> tai goi 63MB (ghi % neu vang) -> keo sync_state.txt + alive.txt
+  (+ kgvn-*.ips neu vang) -> gui tao.

@@ -132,6 +132,9 @@ ESign non-jailbreak. Lock version 1.64.
       → mod164-esp.ipa 214652163B/428 entries: dylib bytes identical, LC ncmds 131,
       0 .bak, Info.plist OK + HUONGDAN-ESP-LOG.txt. Lỗi console cp1252 khi in log
       repack (chữ Việt) — fix bằng PYTHONIOENCODING=utf-8 (bài học mới).
+- [x] P1b: CI build VERIFY 67072B + RELEASE 66768B (v6/log biến mất khỏi RELEASE —
+      phát hiện SYNC_LOG_NAME còn sót, đã gate sạch); repack v2 = mod164-esp-v2.ipa
+      214652570B: only-added đúng 1 dylib, missing 0, LC 131. Push 129a45d.
 - [ ] skill CD fields (SkillSlot full block) + camera/W2S (phase 2)
 - [ ] self-resolve (view static có bl-transform, chưa replicate được — KHÔNG heuristic giả)
 - [ ] push commit → CI build libUnityHelper → tải về → repack mod164-esp.ipa (CHỜ DUYỆT PUSH)
