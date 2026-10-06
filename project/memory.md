@@ -186,3 +186,7 @@ ESign non-jailbreak. Lock version 1.64.
     khác bytes v2 → repack mod164-esp-v3.ipa 214652160B: only-added 1 dylib,
     missing 0, LC 131. HOW TO USE lên v3. LUẬT MỚI (user): chỉ tải file zip,
     ghi đè khi trùng tên, không giải nén (bung là việc của tao).
+27. L27 khám nghiệm v3 (binary, không phải source): 0 chuỗi cấm (cheat/esp/hack/
+    menu/fog/vision/META); đủ import vm_read_overwrite + vm_region_64 + mincore +
+    fopen + pthread + rename (fix CÓ trong binary); LC chuẩn dylib, không lạ.
+    V6HIT/sync_state/alive/LActorRoot tồn tại theo thiết kế VERIFY (RELEASE strip).
