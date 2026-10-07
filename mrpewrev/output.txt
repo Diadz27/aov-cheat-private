@@ -329,3 +329,11 @@ Tóm tắt: magic KHÔNG TỒN TẠI trong RAM. Nhánh magic-hunt đóng sổ. C
   memory L27. Push CI (v4-debug).
 [NEXT]: user tai dylib (lan xanh moi nhat) -> tao repack v4 -> user 1 tran rank ->
   gui sync_state.txt (can dong ROOT) -> doc M1b -> sua dung mat gay.
+
+---
+[PHIEN]: buildmode-repackv4-01 - ngay 2026-10-07. Repack ESP v4 xong.
+[DA LAM]: user tai zip tu CI #22 XANH (b456b9b) -> bung dylib 67096B Mach-O verified,
+  khac bytes v3, CO chuoi ROOT logger -> repack mod164-esp-v4.ipa 214652499B/428:
+  only-added 1 dylib, missing 0, LC 131, bytes identical. HOW v4 + memory L28. Push.
+[NEXT]: user ky v4 -> 1 tran rank 5v5 -> gui sync_state.txt (CAN DONG ROOT) ->
+  doc M1b (mat 0 dau tien) -> sua dung mat -> build v5.

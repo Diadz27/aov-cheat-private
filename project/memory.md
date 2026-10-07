@@ -189,6 +189,9 @@ ESign non-jailbreak. Lock version 1.64.
 27. L27 M1a root-logging: thêm log_roots() ghi P/S/FW/BT/MG/HR mỗi 25 tick khi
     n==0 (không động logic đọc; audit ALL-CLEAR, chỉ 1 nit unused RELEASE đã bọc).
     Gửi log mới là biết mắt nào null → sửa đúng mắt đó (bảng M1b trong plan).
+28. L28 repack v4: user tải zip từ CI #22 XANH (commit b456b9b) → dylib 67096B,
+    khác bytes v3, CÓ chuỗi ROOT logger → mod164-esp-v4.ipa 214652499B:
+    only-added 1 dylib, missing 0, LC 131. HOW TO USE lên v4.
 27. L27 khám nghiệm v3 (binary, không phải source): 0 chuỗi cấm (cheat/esp/hack/
     menu/fog/vision/META); đủ import vm_read_overwrite + vm_region_64 + mincore +
     fopen + pthread + rename (fix CÓ trong binary); LC chuẩn dylib, không lạ.
