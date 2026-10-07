@@ -346,3 +346,12 @@ Tóm tắt: magic KHÔNG TỒN TẠI trong RAM. Nhánh magic-hunt đóng sổ. C
   Audit ALL-CLEAR (compile/logic/crash/RELEASE/forensic). memory L28. Push CI.
 [NEXT]: user tai zip (lan xanh moi) -> tao repack v5 -> HOW v5 -> 1 tran rank ->
   doc H1A(count)/H2A/H3 -> khoa neo hoac hoi Claude 1 cau.
+
+---
+[PHIEN]: buildmode-repackv5-01 - ngay 2026-10-07. Repack ESP v5 (4-hypothesis).
+[DA LAM]: CI #25 xanh dung commit B2; verify sha256 zip khop CI -> dylib 67096B
+  Mach-O, khac v4, DU marker H1A/H2A/H3/V6START/v6.txt/ROOT -> mod164-esp-v5.ipa
+  214652751B/428: only-added 1 dylib, missing 0, LC 131. HOW v5 + memory L29. Push.
+[NEXT]: user ky v5 -> 1 tran rank 5v5 -> gui sync_state.txt (CAN H1A/H2A/H3) + v6.txt.
+  H1A count>0 -> khoa neo Kyrios -> M3. H1A=0+H2A!=0 -> mo VHostLogic.
+  Tat ca 0 -> hoi Claude 1 cau singleton con lai.

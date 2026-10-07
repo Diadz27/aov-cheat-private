@@ -184,6 +184,10 @@ ESign non-jailbreak. Lock version 1.64.
     (slot trừ-base ra số âm — máy chứng minh); H1A walk ĐẾM số hero thật
     (pointer≠0 chưa đủ); v6 ra file riêng v6.txt + chạy tick>=5 độc lập n.
     Audit ALL-CLEAR. Push CI → chờ dylib → repack v5 → 1 trận rank.
+29. L29 repack v5: CI #25 XANH đúng commit B2 (d27bcb4); user tải đủ 4 zip.
+    Verify sha256 zip khớp CI từng byte (chống tráo) → dylib 67096B Mach-O,
+    khác v4, CÓ đủ marker H1A/H2A/H3/V6START/v6.txt/ROOT → mod164-esp-v5.ipa
+    214652751B: only-added 1 dylib, missing 0, LC 131. HOW lên v5.
 25. L25 CI ĐỎ 4 lần (#15-#18): nguyên nhân duy nhất là memory.h của tao —
     mach/mach_vm.h BỊ CẤM trên iOS (#error unsupported) + mach_vm_read_overwrite
     không tồn tại → trình biên dịch tự gợi ý vm_read_overwrite (mach/vm_map.h).
