@@ -180,6 +180,10 @@ ESign non-jailbreak. Lock version 1.64.
     L24b (sửa luật): trong workspace thì file hết giá trị TỰ XÓA không hỏi;
     file của user không đụng; ngoài workspace thì hỏi. Đợt 4: xóa esp-v2+v3
     (429304730B, 409.4MB) → workspace còn 625.5MB. Giữ: stock/base/v4/file user.
+28. L28 B2 4-hypothesis (theo spec Claude + 3 cải tiến của tao): H1B/H2B BỎ
+    (slot trừ-base ra số âm — máy chứng minh); H1A walk ĐẾM số hero thật
+    (pointer≠0 chưa đủ); v6 ra file riêng v6.txt + chạy tick>=5 độc lập n.
+    Audit ALL-CLEAR. Push CI → chờ dylib → repack v5 → 1 trận rank.
 25. L25 CI ĐỎ 4 lần (#15-#18): nguyên nhân duy nhất là memory.h của tao —
     mach/mach_vm.h BỊ CẤM trên iOS (#error unsupported) + mach_vm_read_overwrite
     không tồn tại → trình biên dịch tự gợi ý vm_read_overwrite (mach/vm_map.h).

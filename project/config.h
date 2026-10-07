@@ -54,13 +54,17 @@
 // [DUMP] CampsHeroActors @0x90 (alt path, unused v1)
 #define L_MGR_CAMPSHEROES   0x90u
 
-// ─── ActorManager (view — visible only; self-detect DEFERRED) ───
-// [DUMP] HeroActors @0x20 (field offset stands). Root static UNKNOWN:
-// old slot 0xD1082B0 came from a misidentified getter (true owner of
-// get_actorManager@0x6E5368C is KyriosFramework, not ActorManager).
-// View chain NOT used by v1. Re-derive in phase 2.
-#define V_MGR_SLOT          0x0u
-#define V_MGR_HEROACTORS    0x20u
+// ─── NEW ROOT: KyriosFramework MonoSingleton (B2) ───
+// [DISASM] get_actorManager @0x6E5368C fast path:
+//   *0xD1082B0 → HasInstance, *0xD1082C0 → get_instance, then +0x28.
+// 3-hop (same formula as old chain): slot=class_ptr → +0xB8=static_fields
+// → +0x0=instance. NO minus-base variant (machine-verified: both slots are
+// file offsets inside __DATA 0xCC98000-0xD554000; minus-0x100000000 is negative).
+#define SLOT_KF             0x0D1082C0ULL
+#define KF_ACTOR_MGR        0x28u   // [DUMP] KyriosFramework._actorManager
+#define KF_HERO_LIST        0x20u   // [DUMP] ActorManager.HeroActors (view list)
+#define KF_HOST_LOGIC       0x50u   // [DUMP] KyriosFramework._hostLogic (H2 probe)
+#define V6_LOG_NAME         "v6.txt"
 
 // ─── List<T> — DUAL hypothesis ([CALIB] picks winner at runtime) ───
 // H_STD {items@0x10,size@0x18} (mscorlib textbook)

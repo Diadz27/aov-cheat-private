@@ -337,3 +337,12 @@ Tóm tắt: magic KHÔNG TỒN TẠI trong RAM. Nhánh magic-hunt đóng sổ. C
   only-added 1 dylib, missing 0, LC 131, bytes identical. HOW v4 + memory L28. Push.
 [NEXT]: user ky v4 -> 1 tran rank 5v5 -> gui sync_state.txt (CAN DONG ROOT) ->
   doc M1b (mat 0 dau tien) -> sua dung mat -> build v5.
+
+---
+[PHIEN]: buildmode-B2-01 - ngay 2026-10-07. Code 4-hypothesis theo spec Claude.
+[DA LAM]: config SLOT_KF/KF_* (BO H1B/H2B: slot tru-base ra so am, may chung minh);
+  cheat.c kf_instance/get_heroes_kf/get_host_logic/log_hypotheses (H1A walk DEM
+  so hero, H2A, H3 doi chung); v6 tach n>0 -> tick>=5 file v6.txt rieng.
+  Audit ALL-CLEAR (compile/logic/crash/RELEASE/forensic). memory L28. Push CI.
+[NEXT]: user tai zip (lan xanh moi) -> tao repack v5 -> HOW v5 -> 1 tran rank ->
+  doc H1A(count)/H2A/H3 -> khoa neo hoac hoi Claude 1 cau.

@@ -234,6 +234,50 @@ static void log_roots(FILE *f) {
     fprintf(f, "ROOT base=0x%lx P=0x%lx S=0x%lx FW=0x%lx BT=0x%lx MG=0x%lx HR=0x%lx\n",
         g_il2cpp_base, p, s, fw, bt, mg, hr);
 }
+
+// ─── NEW ROOT HYPOTHESES (B2): KyriosFramework MonoSingleton ───
+// Same 3-hop formula as old chain (slot=class → +0xB8=statics → +0x0=inst).
+// H1: kf → ActorManager → HeroActors (view list, disasm-confirmed).
+// H2: kf → _hostLogic (probe only; battle bridge if H1 wins list but empty).
+static uintptr_t kf_instance(void) {
+    if (!g_il2cpp_base) return 0;
+    uintptr_t class_ptr = mem_safe_ptr(g_il2cpp_base + SLOT_KF);
+    if (!class_ptr) return 0;
+    uintptr_t sf = mem_safe_ptr(class_ptr + CLASS_STATICFIELDS);
+    if (!sf) return 0;
+    return mem_safe_ptr(sf); // +0x0 = instance
+}
+
+static uintptr_t get_heroes_kf(void) {
+    uintptr_t kf = kf_instance();
+    if (!kf) return 0;
+    uintptr_t amgr = mem_safe_ptr(kf + KF_ACTOR_MGR);
+    if (!amgr) return 0;
+    return mem_safe_ptr(amgr + KF_HERO_LIST);
+}
+
+static uintptr_t get_host_logic(void) {
+    uintptr_t kf = kf_instance();
+    if (!kf) return 0;
+    return mem_safe_ptr(kf + KF_HOST_LOGIC); // VHostLogic*
+}
+
+// Log H1A (list + WALK COUNT, not just pointer), H2A, H3 (old chain control).
+// Count proves the list is walkable — a stale pointer alone means nothing.
+static void log_hypotheses(FILE *f) {
+    static HeroData hprobe[64];
+    uintptr_t heroes_a = get_heroes_kf();
+    int cA = 0;
+    if (heroes_a) {
+        cA = walk_hyp(heroes_a, hprobe, 1);
+        if (cA <= 0) cA = -walk_hyp(heroes_a, hprobe, 0); // negative = STD only
+    }
+    fprintf(f, "H1A heroes=0x%lx count=%d\n", heroes_a, cA);
+    uintptr_t hl = get_host_logic();
+    fprintf(f, "H2A hostLogic=0x%lx\n", hl);
+    uintptr_t p_old = mem_safe_ptr(g_il2cpp_base + SLOT_FWCLASS);
+    fprintf(f, "H3 EditorProxy_P=0x%lx (0x20016ccd=dead)\n", p_old);
+}
 #endif
 
 // ─── MAIN LOOP ───
@@ -254,6 +298,8 @@ static void *reader_loop(void *arg) {
     snprintf(tmppath, sizeof(tmppath), "%s.tmp", logpath);
     char alivepath[512];
     docs_path(alivepath, sizeof(alivepath), "alive.txt");
+    char v6path[512];
+    docs_path(v6path, sizeof(v6path), V6_LOG_NAME);
     bool v6_done = false;
 #endif
 
@@ -262,6 +308,19 @@ static void *reader_loop(void *arg) {
     int idle_ticks = 0;
     while (1) {
         int n = scan_heroes(heroes);
+#ifndef RELEASE_BUILD
+        // v6 runs ONCE at tick>=5, independent of n (old bug: gated on n>0,
+        // chain dead => n=0 forever => v6 never ran). Own file, kept forever.
+        if (!v6_done && tick >= 5) {
+            FILE *vf = fopen(v6path, "w");
+            if (vf) {
+                fprintf(vf, "V6START tick=%d base=0x%lx\n", tick, g_il2cpp_base);
+                v6_hunt(vf);
+                fclose(vf);
+            }
+            v6_done = true;
+        }
+#endif
         if (n <= 0) {
             // pre-battle/loading: back off to 1s cadence (near-zero footprint
             // while the game downloads/decompresses resource packs)
@@ -278,6 +337,7 @@ static void *reader_loop(void *arg) {
                         fprintf(r, "UL-1.64 base=0x%lx layout=%d tick=%d n=0\n",
                             g_il2cpp_base, g_layout_list, tick);
                         log_roots(r);
+                        log_hypotheses(r);
                         fclose(r);
                         rename(tmppath, logpath);
                     }
@@ -301,7 +361,6 @@ static void *reader_loop(void *arg) {
                     heroes[i].x, heroes[i].z,
                     heroes[i].name[0] ? heroes[i].name : "?");
             }
-            if (n > 0 && !v6_done) { v6_hunt(f); v6_done = true; }
             fclose(f);
             rename(tmppath, logpath);
         }
