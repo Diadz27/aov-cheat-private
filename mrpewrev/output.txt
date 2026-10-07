@@ -321,3 +321,11 @@ Tóm tắt: magic KHÔNG TỒN TẠI trong RAM. Nhánh magic-hunt đóng sổ. C
 [NEXT]: user ky v3 -> tai dung goi hay vang (ghi %) -> vao tran 5v5 -> keo 2 log.
   Khong vang -> doc log khoa ban. Van vang -> thang R0-R3 + .ips.
 [FILES]: mod164-esp-v3.ipa (moi, xe v3).
+
+---
+[PHIEN]: buildmode-M1a-01 - ngay 2026-10-07. Patch log_roots + push CI.
+[DA LAM]: them log_roots() (P/S/FW/BT/MG/HR, moi 25 tick khi n==0, tmp+rename);
+  audit ALL-CLEAR (crash/logic/cadence/rotation OK; 1 nit RELEASE-unused da boc).
+  memory L27. Push CI (v4-debug).
+[NEXT]: user tai dylib (lan xanh moi nhat) -> tao repack v4 -> user 1 tran rank ->
+  gui sync_state.txt (can dong ROOT) -> doc M1b -> sua dung mat gay.

@@ -221,6 +221,21 @@ static void v6_hunt(FILE *f) {
 }
 #endif
 
+#ifndef RELEASE_BUILD
+// ─── ROOT DEBUG (M1a): log every chain hop, never early-return ───
+// Answers "which hop is null" in one match. Read-only, same safe readers.
+static void log_roots(FILE *f) {
+    uintptr_t p = mem_safe_ptr(g_il2cpp_base + SLOT_FWCLASS);
+    uintptr_t s = p ? mem_safe_ptr(p + CLASS_STATICFIELDS) : 0;
+    uintptr_t fw = s ? mem_safe_ptr(s) : 0;
+    uintptr_t bt = fw ? mem_safe_ptr(fw + FW_BATTLE) : 0;
+    uintptr_t mg = bt ? mem_safe_ptr(bt + LBATTLE_GAMEMGR) : 0;
+    uintptr_t hr = mg ? mem_safe_ptr(mg + L_MGR_HEROACTORS) : 0;
+    fprintf(f, "ROOT base=0x%lx P=0x%lx S=0x%lx FW=0x%lx BT=0x%lx MG=0x%lx HR=0x%lx\n",
+        g_il2cpp_base, p, s, fw, bt, mg, hr);
+}
+#endif
+
 // ─── MAIN LOOP ───
 static void *reader_loop(void *arg) {
     (void)arg;
@@ -257,6 +272,14 @@ static void *reader_loop(void *arg) {
                     if (a) {
                         fprintf(a, "tick=%d base=0x%lx\n", tick, g_il2cpp_base);
                         fclose(a);
+                    }
+                    FILE *r = fopen(tmppath, "w");
+                    if (r) {
+                        fprintf(r, "UL-1.64 base=0x%lx layout=%d tick=%d n=0\n",
+                            g_il2cpp_base, g_layout_list, tick);
+                        log_roots(r);
+                        fclose(r);
+                        rename(tmppath, logpath);
                     }
                 }
 #endif
