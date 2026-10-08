@@ -223,3 +223,7 @@ ESign non-jailbreak. Lock version 1.64.
     menu/fog/vision/META); đủ import vm_read_overwrite + vm_region_64 + mincore +
     fopen + pthread + rename (fix CÓ trong binary); LC chuẩn dylib, không lạ.
     V6HIT/sync_state/alive/LActorRoot tồn tại theo thiết kế VERIFY (RELEASE strip).
+29. L29 repack rgctx: CI #29 XANH dung commit RGCTX; sha256 zip khop CI tung byte;
+    dylib 67224B Mach-O, khac ban cu, CO marker RG/FBB/S0/SK/NucleusDrive/V6START
+    -> mod164-esp-rgctx.ipa 214654691B: only-added 1 dylib, missing 0, LC 131.
+    HOW len rgctx. Don esp-skill cu theo luat tu-don.

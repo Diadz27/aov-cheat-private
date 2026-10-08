@@ -1,13 +1,14 @@
-HOW TO USE — BẢN mod164-esp-skill.ipa (cập nhật sau mỗi lần xong việc, luôn chỉ giữ 1 file này)
-BẢN SKILL CÓ GÌ MỚI: log S0 (prologue + S1/S2 thô — phân biệt game-chưa-gọi vs
-công thức sai) + log SK sau mỗi hero (ready + CD từng slot 0-15, đường logic
-chống bụi). 1 trận này vừa test neo Kyrios, vừa test đọc CD ulti địch.
-Mục đích: lấy S0/H1A/SK để khóa neo + khóa CD trong cùng 1 log.
+HOW TO USE — BẢN mod164-esp-rgctx.ipa (cập nhật sau mỗi lần xong việc, luôn chỉ giữ 1 file này)
+BẢN RGCTX CÓ GÌ MỚI: công thức replicate Kyrios viết lại đúng disasm (RGCTX thay
+vì class) + log RG (H/G/eq/K) + heap-sweep tự tìm object sống khi chain chết
+(log FBB klass/last) + CD ulti logic-tree + SK. 1 trận này quyết định neo nào
+sống: Kyrios-RGCTX, heap-sweep, hay cả hai.
+Mục đích: lấy RG/H1A/FBB/SK để khóa neo + khóa CD trong cùng 1 log.
 
 0. CHUẨN BỊ
 - Máy trống ít nhất 2GB. Dùng acc RÁC (không acc chính, không leo rank mod).
 - Giữ nguyên game/iOS, đừng update gì trong lúc test.
-- File: mod164-esp-skill.ipa (~215MB). Chép vào máy qua cáp USB (Files/3uTools).
+- File: mod164-esp-rgctx.ipa (~215MB). Chép vào máy qua cáp USB (Files/3uTools).
 
 1. KÝ (ESign, cert mua)
 - Import cert .p12 + mobileprovision trước.

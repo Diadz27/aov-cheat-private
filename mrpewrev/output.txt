@@ -380,3 +380,13 @@ Tóm tắt: magic KHÔNG TỒN TẠI trong RAM. Nhánh magic-hunt đóng sổ. C
   ulti=slot3/MS + CD ms + skill logic-tree; audit 2 loi that da fix. memory L24.
 [NEXT]: commit+push -> CI -> tai zip -> repack (neo-RGCTX + sweep + CD) ->
   HOW -> 1 tran rank -> doc RG/H1A/FBB/SK.
+
+---
+[PHIEN]: buildmode-repackrgctx-01 - ngay 2026-10-07. Repack ESP RGCTX.
+[DA LAM]: CI #29 xanh dung commit RGCTX; sha256 khop CI; dylib 67224B Mach-O,
+  khac ban cu, DU marker RG/FBB/S0/SK/NucleusDrive/V6START -> mod164-esp-rgctx.ipa
+  214654691B/428: only-added 1 dylib, missing 0, LC 131. HOW len rgctx.
+  Don esp-skill (204.7MB). memory L29. Push.
+[NEXT]: user ky rgctx -> 1 tran rank 5v5 -> gui sync_state.txt (CAN RG/H1A/FBB/SK)
+  + v6.txt. RG eq=1 + H1A count>0 -> khoa neo Kyrios. FBB klass!=0 + obj>0 ->
+  khoa heap-sweep. Tat ca 0 -> hoi Claude 1 cau.
