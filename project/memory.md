@@ -170,6 +170,13 @@ ESign non-jailbreak. Lock version 1.64.
     khong an decl co '{ }' cung dong; (c) get_actorManager thuoc ve KyriosFramework
     (KHONG phai ActorManager) - V_MGR_SLOT cu tu ham nhan nham -> danh UNKNOWN,
     view path hoan chinh thuc (v1 khong dung view). M1 vm_read retrofit committed.
+24. L24 RGCTX replicate + FALLBACK-B heap-sweep (6 agents): kf_inst_has/get theo
+    dung cong thuc disasm (+0x20/+0xC0/+0x10/+0xB8/+0x28, KHONG writeback `!`);
+    S1/S2 null = game chua goi getter (prologue flag phan biet); klass-scan gate
+    G1-G3 + sweep stride-8 throttle cap-600MB abort-12 (FP ~0 nho camp-gate);
+    audit bat 2 loi that: sweep khong chay khi chain chet han (da cau truc lai
+    scan_heroes) + VERIFY-only by design (ghi ro). Ulti=slot3 (13 neu linked),
+    CD don vi ms, skill logic-tree actor+0x328→+0x88 (view @0x21/@0x50 fog-gated).
 25. L25 (user báo): mod164-esp-v2.ipa VẪN VĂNG lúc tải gói. ĐÚNG DỰ KIẾN CHẨN ĐOÁN:
     v2 chỉ có backoff (thu hẹp cửa race), chưa có vm_read fix (v3 mới có).
     Lỗi truyền đạt của tao: không dán nhãn v2 là "bản chẩn đoán, vẫn có thể văng"

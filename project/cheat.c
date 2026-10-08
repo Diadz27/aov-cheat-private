@@ -24,6 +24,10 @@
 
 // ─── GLOBALS ───
 static uintptr_t g_il2cpp_base = 0;
+// FALLBACK-B roots (filled at runtime, never hardcoded)
+static uintptr_t g_str_actor = 0;   // LActorRoot name cstr (from v6 hunt)
+static uintptr_t g_klass_actor = 0; // Il2CppClass* LActorRoot (from klass-scan)
+static int g_sweep_last = -1;       // last sweep validated count (-1 = never ran)
 static int g_layout_list = -1; // 0=STD 1=BIN, -1 undecided
 static int g_zero_ticks = 0;
 
@@ -143,24 +147,109 @@ static int walk_hyp(uintptr_t heroes, HeroData *out, int use_bin) {
     return c;
 }
 
-// ─── SCANNER: tries BIN then STD, locks winner ───
+// ─── FALLBACK-B: root-free klass-scan → object sweep ───
+// Fires ONLY when the Kyrios chain yields nothing. Throttled, capped,
+// early-abort. Read-only (vm_read + memcmp), zero writes, zero calls.
+// NOTE (B1 audit): discovery path is VERIFY-only by design (needs g_str_actor
+// from v6 hunt); RELEASE will use the locked chain post-M3, no sweep needed.
+// Klass gates (cheapest first): G1 name-ptr, G2 inst/token/counts burst,
+// G3 namespace strcmp. Object gates reuse actor_read (type/copy/camp/hp/pos).
+static uintptr_t klass_scan(void) {
+    if (!g_str_actor) return 0;
+    uintptr_t c = g_str_actor - 0x10; // name@0x10 (Il2CppClass, 8B header fork)
+    if (!mem_probe(c, 0x130)) return 0;
+    if (mem_safe_ptr(c + 0x10) != g_str_actor) return 0;          // G1
+    uint32_t inst = mem_safe_u32(c + 0xF8);
+    uint32_t tok = mem_safe_u32(c + 0x118);
+    uint16_t mc = mem_safe_u16(c + 0x11C);
+    uint16_t fc = mem_safe_u16(c + 0x120);
+    if (inst < 0x440 || inst > 0x4A0) return 0;                   // G2a
+    if ((tok >> 16) != 0x02) return 0;                            // G2b token hi
+    if (mc < 10 || mc > 300 || fc < 10 || fc > 120) return 0;     // G2c
+    uintptr_t ns = mem_safe_ptr(c + 0x18);                       // G3 ns
+    if (!ns) return 0;
+    char nsb[20];
+    if (!mem_copy_bytes(ns, nsb, 18)) return 0;
+    if (memcmp(nsb, "NucleusDrive.Logic", 18) != 0) return 0;
+    return c;
+}
+
+static uint8_t sweep_buf[65536];
+static int sweep_cool = 150; // first call runs immediately, then ~1 per 150 calls
+
+// Sweep heap for live LActorRoot objects (klass ptr match + full gates).
+// Returns validated count (0 = nothing / throttled). Bounded: 600MB cap,
+// abort at 12 validated, abort pass on >10 klass-hits with 0 validates.
+static int sweep_actors(HeroData *out) {
+    if (++sweep_cool < 150) return 0;
+    sweep_cool = 0;
+    if (!g_klass_actor) {
+        g_klass_actor = klass_scan();
+        if (!g_klass_actor) return 0;
+    }
+    vm_size_t sz = 0;
+    mach_msg_type_number_t ic = VM_REGION_BASIC_INFO_COUNT_64;
+    vm_region_basic_info_data_64_t info;
+    mach_port_t obj = MACH_PORT_NULL;
+    uintptr_t addr = 0;
+    uint64_t scanned = 0;
+    int validated = 0, klass_hits = 0;
+    const uint64_t CAP = 600ULL * 1024 * 1024;
+    while (scanned < CAP && validated < 12) {
+        ic = VM_REGION_BASIC_INFO_COUNT_64;
+        if (vm_region_64(mach_task_self(), (vm_address_t *)&addr, &sz,
+                VM_REGION_BASIC_INFO, (vm_region_info_t)&info, &ic, &obj) != KERN_SUCCESS)
+            break;
+        if (sz == 0) break; // paranoia: never spin on empty region
+        if ((info.protection & VM_PROT_READ) && !(info.protection & VM_PROT_EXECUTE) && sz >= 4096) {
+            for (uintptr_t base = addr; base < addr + sz && validated < 12; base += 65536) {
+                size_t clen = 65536;
+                if (base + clen > addr + sz) clen = (size_t)(addr + sz - base);
+                if (!mem_copy_bytes(base, sweep_buf, clen)) continue;
+                for (size_t o = 0; o + 8 <= clen; o += 8) {
+                    uintptr_t v;
+                    memcpy(&v, sweep_buf + o, 8);
+                    if (v != g_klass_actor) continue;
+                    if (++klass_hits > 10 && validated == 0) { g_sweep_last = 0; return 0; }
+                    if (klass_hits > 200000) { g_sweep_last = validated; return validated; }
+                    HeroData hd;
+                    if (actor_read(base + o, &hd, 1)) out[validated++] = hd;
+                    if (validated >= 12) break;
+                }
+            }
+            scanned += sz;
+        }
+        addr += sz;
+    }
+    (void)obj;
+    g_sweep_last = validated;
+    return validated;
+}
+
+// ─── SCANNER: old chain first, then FALLBACK-B sweep on ANY dead path ───
+// NOTE: sweep only fires when the old chain yields nothing (battle/mgr/
+// heroes null OR walk empty). Throttled internally (~1 per 150 calls).
 static int scan_heroes(HeroData *out) {
     uintptr_t battle = get_battle();
-    if (!battle) return 0;
-    uintptr_t mgr = mem_safe_ptr(battle + LBATTLE_GAMEMGR);
-    if (!mgr) return 0;
-    uintptr_t heroes = mem_safe_ptr(mgr + L_MGR_HEROACTORS);
-    if (!heroes) return 0;
-    int order[2] = {1, 0};
-    if (g_layout_list >= 0) { order[0] = g_layout_list; order[1] = g_layout_list ^ 1; }
-    for (int k = 0; k < 2; k++) {
-        int c = walk_hyp(heroes, out, order[k]);
-        if (c > 0) {
-            g_layout_list = order[k];
-            g_zero_ticks = 0;
-            return c;
+    uintptr_t heroes = 0;
+    if (battle) {
+        uintptr_t mgr = mem_safe_ptr(battle + LBATTLE_GAMEMGR);
+        if (mgr) heroes = mem_safe_ptr(mgr + L_MGR_HEROACTORS);
+    }
+    if (heroes) {
+        int order[2] = {1, 0};
+        if (g_layout_list >= 0) { order[0] = g_layout_list; order[1] = g_layout_list ^ 1; }
+        for (int k = 0; k < 2; k++) {
+            int c = walk_hyp(heroes, out, order[k]);
+            if (c > 0) {
+                g_layout_list = order[k];
+                g_zero_ticks = 0;
+                return c;
+            }
         }
     }
+    int cs = sweep_actors(out); // FALLBACK-B: root-free klass/object sweep
+    if (cs > 0) { g_zero_ticks = 0; return cs; }
     if (++g_zero_ticks > 25) { g_layout_list = -1; g_zero_ticks = 0; } // re-open
     return 0;
 }
@@ -203,6 +292,8 @@ static void v6_hunt(FILE *f) {
                         void *h = memmem((void *)p, (size_t)(pend - p), t, tl);
                         if (!h) break;
                         fprintf(f, "V6HIT %s @0x%lx\n", t, (uintptr_t)h);
+                        if (!g_str_actor && strcmp(t, "LActorRoot") == 0)
+                            g_str_actor = (uintptr_t)h; // klass-scan anchor
                         hits_total++;
                         p = (uintptr_t)h + tl;
                         found++;
@@ -235,31 +326,48 @@ static void log_roots(FILE *f) {
         g_il2cpp_base, p, s, fw, bt, mg, hr);
 }
 
-// ─── NEW ROOT HYPOTHESES (B2): KyriosFramework MonoSingleton ───
-// Same 3-hop formula as old chain (slot=class → +0xB8=statics → +0x0=inst).
-// H1: kf → ActorManager → HeroActors (view list, disasm-confirmed).
-// H2: kf → _hostLogic (probe only; battle bridge if H1 wins list but empty).
-static uintptr_t kf_instance(void) {
+// ─── KYRIOS RGCTX REPLICATION (B1a): slots hold RGCTX ctx ptrs, NOT class ptrs ───
+// Disasm-verified 0x214F264 (HasInstance) / 0x214E6D4 (get_instance).
+// Has: H1=*S1 → M1=*[+0x20] → RG1=*[+0xC0] → K=*[+0x10] → SF=*[K+0xB8] → INST=*SF
+// Get: R2=*S2 → M2=*[+0x20] → RG2=*[+0xC0] → INST=*[+0x28] → Mgr=*[INST+0x28]
+// NEVER replicate `!` writeback (plain +off). S1/S2 null = game never called
+// the getter yet (prologue flag 0) — NOT-INITED, not dead.
+static uintptr_t kf_inst_has(uintptr_t *out_k) {
     if (!g_il2cpp_base) return 0;
-    uintptr_t class_ptr = mem_safe_ptr(g_il2cpp_base + SLOT_KF);
-    if (!class_ptr) return 0;
-    uintptr_t sf = mem_safe_ptr(class_ptr + CLASS_STATICFIELDS);
+    uintptr_t h1 = mem_safe_ptr(g_il2cpp_base + SLOT_KF_S1);
+    if (!h1) return 0;
+    uintptr_t m1 = mem_safe_ptr(h1 + 0x20);
+    if (!m1) return 0;
+    uintptr_t rg1 = mem_safe_ptr(m1 + 0xC0);
+    if (!rg1) return 0;
+    uintptr_t k = mem_safe_ptr(rg1 + 0x10);
+    if (!k) return 0;
+    uintptr_t sf = mem_safe_ptr(k + CLASS_STATICFIELDS);
     if (!sf) return 0;
+    if (out_k) *out_k = k;
     return mem_safe_ptr(sf); // +0x0 = instance
 }
-
+static uintptr_t kf_inst_get(void) {
+    if (!g_il2cpp_base) return 0;
+    uintptr_t r2 = mem_safe_ptr(g_il2cpp_base + SLOT_KF);
+    if (!r2) return 0;
+    uintptr_t m2 = mem_safe_ptr(r2 + 0x20);
+    if (!m2) return 0;
+    uintptr_t rg2 = mem_safe_ptr(m2 + 0xC0);
+    if (!rg2) return 0;
+    return mem_safe_ptr(rg2 + 0x28); // INST directly
+}
 static uintptr_t get_heroes_kf(void) {
-    uintptr_t kf = kf_instance();
-    if (!kf) return 0;
-    uintptr_t amgr = mem_safe_ptr(kf + KF_ACTOR_MGR);
+    uintptr_t inst = kf_inst_get();
+    if (!inst) return 0;
+    uintptr_t amgr = mem_safe_ptr(inst + KF_ACTOR_MGR);
     if (!amgr) return 0;
     return mem_safe_ptr(amgr + KF_HERO_LIST);
 }
-
 static uintptr_t get_host_logic(void) {
-    uintptr_t kf = kf_instance();
-    if (!kf) return 0;
-    return mem_safe_ptr(kf + KF_HOST_LOGIC); // VHostLogic*
+    uintptr_t inst = kf_inst_get();
+    if (!inst) return 0;
+    return mem_safe_ptr(inst + KF_HOST_LOGIC); // VHostLogic*
 }
 
 // Log H1A (list + WALK COUNT, not just pointer), H2A, H3 (old chain control).
@@ -272,6 +380,12 @@ static void log_hypotheses(FILE *f) {
     uintptr_t s1 = mem_safe_ptr(g_il2cpp_base + SLOT_KF_S1);
     uintptr_t s2 = mem_safe_ptr(g_il2cpp_base + SLOT_KF);
     fprintf(f, "S0 prologue=%u S1=0x%lx S2=0x%lx\n", prologue, s1, s2);
+    uintptr_t kh = 0;
+    uintptr_t inst_h = kf_inst_has(&kh);
+    uintptr_t inst_g = kf_inst_get();
+    fprintf(f, "RG H=0x%lx G=0x%lx eq=%d K=0x%lx\n",
+        inst_h, inst_g, (inst_h && inst_h == inst_g), kh);
+    fprintf(f, "FBB klass=0x%lx last=%d\n", g_klass_actor, g_sweep_last);
     uintptr_t heroes_a = get_heroes_kf();
     int cA = 0;
     if (heroes_a) {
