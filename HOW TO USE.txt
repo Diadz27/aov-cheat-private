@@ -1,13 +1,13 @@
-HOW TO USE — BẢN mod164-esp-v5.ipa (cập nhật sau mỗi lần xong việc, luôn chỉ giữ 1 file này)
-BẢN v5 CÓ GÌ MỚI: test 4 giả thuyết neo trong CÙNG 1 trận (H1A Kyrios/view-list
-có đếm số hero thật, H2A hostLogic, H3 chain cũ đối chứng) + v6 chạy độc lập
-ra file riêng. 1 trận này trả lời tất cả — không còn vòng lặp 1-giả-thuyết.
-Mục đích: lấy dòng H1A/H2A/H3 để khóa điểm neo đúng.
+HOW TO USE — BẢN mod164-esp-skill.ipa (cập nhật sau mỗi lần xong việc, luôn chỉ giữ 1 file này)
+BẢN SKILL CÓ GÌ MỚI: log S0 (prologue + S1/S2 thô — phân biệt game-chưa-gọi vs
+công thức sai) + log SK sau mỗi hero (ready + CD từng slot 0-15, đường logic
+chống bụi). 1 trận này vừa test neo Kyrios, vừa test đọc CD ulti địch.
+Mục đích: lấy S0/H1A/SK để khóa neo + khóa CD trong cùng 1 log.
 
 0. CHUẨN BỊ
 - Máy trống ít nhất 2GB. Dùng acc RÁC (không acc chính, không leo rank mod).
 - Giữ nguyên game/iOS, đừng update gì trong lúc test.
-- File: mod164-esp-v5.ipa (~215MB). Chép vào máy qua cáp USB (Files/3uTools).
+- File: mod164-esp-skill.ipa (~215MB). Chép vào máy qua cáp USB (Files/3uTools).
 
 1. KÝ (ESign, cert mua)
 - Import cert .p12 + mobileprovision trước.

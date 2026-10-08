@@ -189,6 +189,10 @@ ESign non-jailbreak. Lock version 1.64.
     FOG-GATED, bỏ); ulti=idx2 (slot3=summoner KILL); aimbot 1-write KHÔNG tồn
     tại (lock phân tán, loop-ghi mới ăn); macro read-only>#2 call>#3 write-CD;
     antiban=read-only+burner+kỷ luật (không hứa no-ban). Audit ALL-CLEAR.
+30. L30 repack skill: CI #27 XANH đúng commit B1 (4caf5c4); dylib 67184B Mach-O,
+    khác v5, CÓ đủ marker S0/SK/rdy/H1A/ROOT → mod164-esp-skill.ipa 214653541B:
+    only-added 1 dylib, missing 0, LC 131. HOW lên skill. Dọn esp-v5.ipa cũ
+    theo luật (skill thay thế).
 29. L29 repack v5: CI #25 XANH đúng commit B2 (d27bcb4); user tải đủ 4 zip.
     Verify sha256 zip khớp CI từng byte (chống tráo) → dylib 67096B Mach-O,
     khác v4, CÓ đủ marker H1A/H2A/H3/V6START/v6.txt/ROOT → mod164-esp-v5.ipa

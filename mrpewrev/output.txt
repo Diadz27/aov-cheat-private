@@ -362,3 +362,12 @@ Tóm tắt: magic KHÔNG TỒN TẠI trong RAM. Nhánh magic-hunt đóng sổ. C
   actor+0x328->+0x88 slots<=16 (ready@0x6D, xor@0xFC), SK log sau moi H;
   audit ALL-CLEAR (SKILL_SCAN_MAX dead removed, RELEASE-guarded). memory L29.
 [NEXT]: commit+push -> CI -> tai zip -> repack (gop neo+CD) -> HOW -> 1 tran rank.
+
+---
+[PHIEN]: buildmode-repackskill-01 - ngay 2026-10-07. Repack ESP skill (S0+CD).
+[DA LAM]: CI #27 xanh dung commit B1; dylib 67184B Mach-O, khac v5, DU marker
+  S0/SK/rdy/H1A/ROOT -> mod164-esp-skill.ipa 214653541B/428: only-added 1 dylib,
+  missing 0, LC 131. HOW len skill. Don esp-v5 (204.7MB) theo luat tu-don.
+  memory L30. Push.
+[NEXT]: user ky skill -> 1 tran rank 5v5 -> gui sync_state.txt (CAN S0/H1A/SK) +
+  v6.txt. S0 flag=1+H1A count>0 -> khoa neo. SK spike -> suy unit CD.
