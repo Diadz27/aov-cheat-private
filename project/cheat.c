@@ -264,8 +264,14 @@ static uintptr_t get_host_logic(void) {
 
 // Log H1A (list + WALK COUNT, not just pointer), H2A, H3 (old chain control).
 // Count proves the list is walkable — a stale pointer alone means nothing.
+// S0 line distinguishes NOT-INITED (flag 0, game never called the getter)
+// from a wrong replication formula (flag 1 but slots null/garbage).
 static void log_hypotheses(FILE *f) {
     static HeroData hprobe[64];
+    uint8_t prologue = mem_safe_u8(g_il2cpp_base + KF_PROLOGUE_FLAG);
+    uintptr_t s1 = mem_safe_ptr(g_il2cpp_base + SLOT_KF_S1);
+    uintptr_t s2 = mem_safe_ptr(g_il2cpp_base + SLOT_KF);
+    fprintf(f, "S0 prologue=%u S1=0x%lx S2=0x%lx\n", prologue, s1, s2);
     uintptr_t heroes_a = get_heroes_kf();
     int cA = 0;
     if (heroes_a) {
@@ -277,6 +283,48 @@ static void log_hypotheses(FILE *f) {
     fprintf(f, "H2A hostLogic=0x%lx\n", hl);
     uintptr_t p_old = mem_safe_ptr(g_il2cpp_base + SLOT_FWCLASS);
     fprintf(f, "H3 EditorProxy_P=0x%lx (0x20016ccd=dead)\n", p_old);
+}
+#endif
+
+#ifndef RELEASE_BUILD
+// ─── SKILL DATA (M2, logic tree — fog-safe, no client gate) ───
+// Path: actor+0x328 (LSkillComponent) → +0x88 (SkillSlot[] ref-array,
+// stride 8, count=array header) → slot: ready u8 @0x6D, CD xor @0xFC.
+// View-tree @0x21/@0x50 is FOG-GATED — never used for enemies.
+#define SK_MAX 16
+typedef struct {
+    uint8_t ready[SK_MAX];
+    int32_t cd[SK_MAX];
+    int count;
+} SkillData;
+
+// Read skill CDs for one actor. Returns slots read (0 = path dead).
+// RULE: static reads only, zero function calls.
+static int read_actor_skills(uintptr_t actor, SkillData *sd) {
+    memset(sd, 0, sizeof(*sd));
+    uintptr_t sc = mem_safe_ptr(actor + L_ACT_SKILL);
+    if (!sc) return 0;
+    uintptr_t arr = mem_safe_ptr(sc + LSKILL_SLOTS);
+    if (!arr) return 0;
+    uint32_t lo = ARR_BIN_LEN, da = ARR_BIN_DATA;
+    int32_t len = mem_safe_i32(arr + lo);
+    if (len <= 0 || len > SK_MAX) { // STD fallback before giving up
+        lo = ARR_STD_LEN; da = ARR_STD_DATA;
+        len = mem_safe_i32(arr + lo);
+        if (len <= 0 || len > SK_MAX) return 0;
+    }
+    if (!mem_probe(arr + da, (size_t)len * 8)) return 0;
+    int c = 0;
+    for (int i = 0; i < len; i++) {
+        uintptr_t slot = mem_safe_ptr(arr + da + (uintptr_t)i * 8);
+        if (!slot || !mem_probe(slot, 0x110)) continue;
+        sd->ready[c] = mem_safe_u8(slot + SKILL_CD_READY) ? 1 : 0;
+        uint64_t cr = mem_safe_u64(slot + SKILL_CD_CRYPTIC);
+        sd->cd[c] = (int32_t)((uint32_t)cr ^ (uint32_t)(cr >> 32));
+        c++;
+    }
+    sd->count = c;
+    return c;
 }
 #endif
 
@@ -360,6 +408,16 @@ static void *reader_loop(void *arg) {
                     heroes[i].camp, heroes[i].hp, heroes[i].cfg,
                     heroes[i].x, heroes[i].z,
                     heroes[i].name[0] ? heroes[i].name : "?");
+                SkillData skd;
+                int nsk = read_actor_skills(heroes[i].obj_ptr, &skd);
+                if (nsk > 0) {
+                    fprintf(f, "  SK n=%d rdy=", nsk);
+                    for (int k = 0; k < nsk; k++) fprintf(f, "%d", skd.ready[k]);
+                    fprintf(f, " cd=");
+                    for (int k = 0; k < nsk; k++)
+                        fprintf(f, "%s%d", k ? "," : "", skd.cd[k]);
+                    fprintf(f, "\n");
+                }
             }
             fclose(f);
             rename(tmppath, logpath);

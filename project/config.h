@@ -57,13 +57,29 @@
 // ─── NEW ROOT: KyriosFramework MonoSingleton (B2) ───
 // [DISASM] get_actorManager @0x6E5368C fast path:
 //   *0xD1082B0 → HasInstance, *0xD1082C0 → get_instance, then +0x28.
-// 3-hop (same formula as old chain): slot=class_ptr → +0xB8=static_fields
-// → +0x0=instance. NO minus-base variant (machine-verified: both slots are
-// file offsets inside __DATA 0xCC98000-0xD554000; minus-0x100000000 is negative).
-#define SLOT_KF             0x0D1082C0ULL
+// S1/S2 hold RGCTX pointers (not class ptrs): resolved only after the game
+// itself calls get_actorManager (prologue flag below). Pre-match S1==S2==0
+// means NOT-INITED, not dead — log raw values to distinguish.
+// 3-hop (same formula as old chain): slot=class → +0xB8=statics → +0x0=inst.
+// NO minus-base variant (machine-verified: both slots are file offsets
+// inside __DATA 0xCC98000-0xD554000; minus-0x100000000 is negative).
+#define SLOT_KF_S1          0x0D1082B0ULL   // [DISASM] HasInstance rgctx slot
+#define SLOT_KF             0x0D1082C0ULL   // [DISASM] get_instance rgctx slot
+#define KF_PROLOGUE_FLAG    0x0D58F2C1ULL   // [DISASM] init-flag byte (prolog ran?)
 #define KF_ACTOR_MGR        0x28u   // [DUMP] KyriosFramework._actorManager
 #define KF_HERO_LIST        0x20u   // [DUMP] ActorManager.HeroActors (view list)
 #define KF_HOST_LOGIC       0x50u   // [DUMP] KyriosFramework._hostLogic (H2 probe)
+
+// ─── SKILL CD, LOGIC TREE (B1): enemy-safe (no fog gate on these fields) ───
+// [DUMP+DISASM] actor+0x328 (LSkillComponent) → +0x88 (SkillSlot[] ref-array,
+// stride 8, count=array header) → slot: ready u8 @0x6D, CD xor @0xFC/0x100
+// (same ToInt eor as HP). View-tree @0x21/@0x50 is FOG-GATED — do not use
+// for enemies. Ulti = slot idx 2 (idx 3 iff bIsFourSkillType); slot 3 =
+// summoner. Scan slots 0..3 on device to confirm per hero.
+#define L_ACT_SKILL         0x328u
+#define LSKILL_SLOTS        0x88u
+#define SKILL_CD_READY      0x6Du
+#define SKILL_CD_CRYPTIC    0xFCu
 #define V6_LOG_NAME         "v6.txt"
 
 // ─── List<T> — DUAL hypothesis ([CALIB] picks winner at runtime) ───

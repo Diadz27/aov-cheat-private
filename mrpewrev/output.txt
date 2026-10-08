@@ -355,3 +355,10 @@ Tóm tắt: magic KHÔNG TỒN TẠI trong RAM. Nhánh magic-hunt đóng sổ. C
 [NEXT]: user ky v5 -> 1 tran rank 5v5 -> gui sync_state.txt (CAN H1A/H2A/H3) + v6.txt.
   H1A count>0 -> khoa neo Kyrios -> M3. H1A=0+H2A!=0 -> mo VHostLogic.
   Tat ca 0 -> hoi Claude 1 cau singleton con lai.
+
+---
+[PHIEN]: buildmode-B1skill-01 - ngay 2026-10-07. B1 skill-logic + S0 log.
+[DA LAM]: S0 prologue+S1/S2 (phan biet NOT-INITED vs cong thuc sai); CD LOGIC
+  actor+0x328->+0x88 slots<=16 (ready@0x6D, xor@0xFC), SK log sau moi H;
+  audit ALL-CLEAR (SKILL_SCAN_MAX dead removed, RELEASE-guarded). memory L29.
+[NEXT]: commit+push -> CI -> tai zip -> repack (gop neo+CD) -> HOW -> 1 tran rank.

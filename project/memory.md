@@ -184,6 +184,11 @@ ESign non-jailbreak. Lock version 1.64.
     (slot trừ-base ra số âm — máy chứng minh); H1A walk ĐẾM số hero thật
     (pointer≠0 chưa đủ); v6 ra file riêng v6.txt + chạy tick>=5 độc lập n.
     Audit ALL-CLEAR. Push CI → chờ dylib → repack v5 → 1 trận rank.
+29. L29 B1 skill-logic (6 agents): S0 prologue+S1/S2 log thô; CD LOGIC TREE
+    actor+0x328→+0x88 slots 0..15 (ready@0x6D, xor@0xFC — view @0x21/@0x50
+    FOG-GATED, bỏ); ulti=idx2 (slot3=summoner KILL); aimbot 1-write KHÔNG tồn
+    tại (lock phân tán, loop-ghi mới ăn); macro read-only>#2 call>#3 write-CD;
+    antiban=read-only+burner+kỷ luật (không hứa no-ban). Audit ALL-CLEAR.
 29. L29 repack v5: CI #25 XANH đúng commit B2 (d27bcb4); user tải đủ 4 zip.
     Verify sha256 zip khớp CI từng byte (chống tráo) → dylib 67096B Mach-O,
     khác v4, CÓ đủ marker H1A/H2A/H3/V6START/v6.txt/ROOT → mod164-esp-v5.ipa
