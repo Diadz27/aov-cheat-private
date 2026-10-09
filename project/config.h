@@ -157,7 +157,7 @@
 // ─── LOG (VERIFY builds only; RELEASE defines RELEASE_BUILD) ───
 // Neutral filename (neutral filename rule).
 #define SYNC_LOG_NAME        "sync_state.txt"
-#define SYNC_LOG_CAP         65536
+#define SYNC_LOG_CAP         524288
 #define TICK_RATE_US        200000
 #define INIT_DELAY_SEC      6
 #define SELF_REFRESH_TICKS  25

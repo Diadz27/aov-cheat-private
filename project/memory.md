@@ -170,6 +170,10 @@ ESign non-jailbreak. Lock version 1.64.
     khong an decl co '{ }' cung dong; (c) get_actorManager thuoc ve KyriosFramework
     (KHONG phai ActorManager) - V_MGR_SLOT cu tu ham nhan nham -> danh UNKNOWN,
     view path hoan chinh thuc (v1 khong dung view). M1 vm_read retrofit committed.
+24. L24 full-logging (1 tran cuoi): sync_commit append+cap 512KB (ghi de tu xoa
+    bang chung sau quit-menu); H-block moi 25 tick; RGD/KG/SW/SAVED/SLEN day du.
+    Bat 1 BLOCKER that: `if (f)` trung 2 lan (edit gate chong lenh) -> file thieu
+    1 `}` (CI chac chan do). Da xoa dong thua, verify closes@604. Audit ALL-CLEAR.
 24. L24 RGCTX replicate + FALLBACK-B heap-sweep (6 agents): kf_inst_has/get theo
     dung cong thuc disasm (+0x20/+0xC0/+0x10/+0xB8/+0x28, KHONG writeback `!`);
     S1/S2 null = game chua goi getter (prologue flag phan biet); klass-scan gate

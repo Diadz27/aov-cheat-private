@@ -28,6 +28,13 @@ static uintptr_t g_il2cpp_base = 0;
 static uintptr_t g_str_actor = 0;   // LActorRoot name cstr (from v6 hunt)
 static uintptr_t g_klass_actor = 0; // Il2CppClass* LActorRoot (from klass-scan)
 static int g_sweep_last = -1;       // last sweep validated count (-1 = never ran)
+static int g_kgate_id = 0;          // klass-scan failing gate (0 = passed/none)
+static uintptr_t g_kgate_val = 0;   // value at failing gate
+static int g_sw_regions = 0;        // sweep telemetry: regions entered
+static uint64_t g_sw_scanned = 0;   // sweep telemetry: bytes scanned
+static int g_sw_khits = 0;          // sweep telemetry: klass hits
+static int g_sw_abort = 0;          // sweep telemetry: 0 none,1 cap,2 valid12,3 gate-leak,4 overflow
+static int g_last_sllen = 0;        // last skill array length read (SLEN)
 static int g_layout_list = -1; // 0=STD 1=BIN, -1 undecided
 static int g_zero_ticks = 0;
 
@@ -155,22 +162,24 @@ static int walk_hyp(uintptr_t heroes, HeroData *out, int use_bin) {
 // Klass gates (cheapest first): G1 name-ptr, G2 inst/token/counts burst,
 // G3 namespace strcmp. Object gates reuse actor_read (type/copy/camp/hp/pos).
 static uintptr_t klass_scan(void) {
-    if (!g_str_actor) return 0;
+    g_kgate_id = 0; g_kgate_val = 0;
+    if (!g_str_actor) { g_kgate_id = 9; return 0; } // 9 = no anchor yet
     uintptr_t c = g_str_actor - 0x10; // name@0x10 (Il2CppClass, 8B header fork)
-    if (!mem_probe(c, 0x130)) return 0;
-    if (mem_safe_ptr(c + 0x10) != g_str_actor) return 0;          // G1
+    if (!mem_probe(c, 0x130)) { g_kgate_id = 8; g_kgate_val = c; return 0; }
+    uintptr_t nm = mem_safe_ptr(c + 0x10);
+    if (nm != g_str_actor) { g_kgate_id = 1; g_kgate_val = nm; return 0; } // G1
     uint32_t inst = mem_safe_u32(c + 0xF8);
     uint32_t tok = mem_safe_u32(c + 0x118);
     uint16_t mc = mem_safe_u16(c + 0x11C);
     uint16_t fc = mem_safe_u16(c + 0x120);
-    if (inst < 0x440 || inst > 0x4A0) return 0;                   // G2a
-    if ((tok >> 16) != 0x02) return 0;                            // G2b token hi
-    if (mc < 10 || mc > 300 || fc < 10 || fc > 120) return 0;     // G2c
+    if (inst < 0x440 || inst > 0x4A0) { g_kgate_id = 2; g_kgate_val = inst; return 0; }
+    if ((tok >> 16) != 0x02) { g_kgate_id = 2; g_kgate_val = tok; return 0; }
+    if (mc < 10 || mc > 300 || fc < 10 || fc > 120) { g_kgate_id = 2; g_kgate_val = ((uintptr_t)mc << 16) | fc; return 0; }
     uintptr_t ns = mem_safe_ptr(c + 0x18);                       // G3 ns
-    if (!ns) return 0;
+    if (!ns) { g_kgate_id = 3; return 0; }
     char nsb[20];
-    if (!mem_copy_bytes(ns, nsb, 18)) return 0;
-    if (memcmp(nsb, "NucleusDrive.Logic", 18) != 0) return 0;
+    if (!mem_copy_bytes(ns, nsb, 18)) { g_kgate_id = 3; g_kgate_val = ns; return 0; }
+    if (memcmp(nsb, "NucleusDrive.Logic", 18) != 0) { g_kgate_id = 3; g_kgate_val = ns; return 0; }
     return c;
 }
 
@@ -193,7 +202,8 @@ static int sweep_actors(HeroData *out) {
     mach_port_t obj = MACH_PORT_NULL;
     uintptr_t addr = 0;
     uint64_t scanned = 0;
-    int validated = 0, klass_hits = 0;
+    int validated = 0, klass_hits = 0, regions = 0;
+    g_sw_regions = 0; g_sw_scanned = 0; g_sw_khits = 0; g_sw_abort = 0;
     const uint64_t CAP = 600ULL * 1024 * 1024;
     while (scanned < CAP && validated < 12) {
         ic = VM_REGION_BASIC_INFO_COUNT_64;
@@ -202,6 +212,7 @@ static int sweep_actors(HeroData *out) {
             break;
         if (sz == 0) break; // paranoia: never spin on empty region
         if ((info.protection & VM_PROT_READ) && !(info.protection & VM_PROT_EXECUTE) && sz >= 4096) {
+            regions++;
             for (uintptr_t base = addr; base < addr + sz && validated < 12; base += 65536) {
                 size_t clen = 65536;
                 if (base + clen > addr + sz) clen = (size_t)(addr + sz - base);
@@ -210,8 +221,8 @@ static int sweep_actors(HeroData *out) {
                     uintptr_t v;
                     memcpy(&v, sweep_buf + o, 8);
                     if (v != g_klass_actor) continue;
-                    if (++klass_hits > 10 && validated == 0) { g_sweep_last = 0; return 0; }
-                    if (klass_hits > 200000) { g_sweep_last = validated; return validated; }
+                    if (++klass_hits > 10 && validated == 0) { g_sweep_last = 0; g_sw_abort = 3; g_sw_regions = regions; g_sw_khits = klass_hits; return 0; }
+                    if (klass_hits > 200000) { g_sweep_last = validated; g_sw_abort = 4; g_sw_regions = regions; g_sw_khits = klass_hits; return validated; }
                     HeroData hd;
                     if (actor_read(base + o, &hd, 1)) out[validated++] = hd;
                     if (validated >= 12) break;
@@ -223,6 +234,10 @@ static int sweep_actors(HeroData *out) {
     }
     (void)obj;
     g_sweep_last = validated;
+    g_sw_regions = regions;
+    g_sw_scanned = scanned;
+    g_sw_khits = klass_hits;
+    g_sw_abort = (validated >= 12) ? 2 : (scanned >= CAP ? 1 : 0);
     return validated;
 }
 
@@ -385,7 +400,18 @@ static void log_hypotheses(FILE *f) {
     uintptr_t inst_g = kf_inst_get();
     fprintf(f, "RG H=0x%lx G=0x%lx eq=%d K=0x%lx\n",
         inst_h, inst_g, (inst_h && inst_h == inst_g), kh);
+    uintptr_t h1 = mem_safe_ptr(g_il2cpp_base + SLOT_KF_S1);
+    uintptr_t m1 = h1 ? mem_safe_ptr(h1 + 0x20) : 0;
+    uintptr_t rg1 = m1 ? mem_safe_ptr(m1 + 0xC0) : 0;
+    uintptr_t r2 = mem_safe_ptr(g_il2cpp_base + SLOT_KF);
+    uintptr_t m2 = r2 ? mem_safe_ptr(r2 + 0x20) : 0;
+    uintptr_t rg2 = m2 ? mem_safe_ptr(m2 + 0xC0) : 0;
+    fprintf(f, "RGD M1=0x%lx RG1=0x%lx R2=0x%lx M2=0x%lx RG2=0x%lx\n",
+        m1, rg1, r2, m2, rg2);
     fprintf(f, "FBB klass=0x%lx last=%d\n", g_klass_actor, g_sweep_last);
+    fprintf(f, "KG gid=%d gval=0x%lx\n", g_kgate_id, g_kgate_val);
+    fprintf(f, "SW regions=%d scannedMB=%llu khits=%d abort=%d\n",
+        g_sw_regions, (unsigned long long)(g_sw_scanned >> 20), g_sw_khits, g_sw_abort);
     uintptr_t heroes_a = get_heroes_kf();
     int cA = 0;
     if (heroes_a) {
@@ -428,6 +454,7 @@ static int read_actor_skills(uintptr_t actor, SkillData *sd) {
         if (len <= 0 || len > SK_MAX) return 0;
     }
     if (!mem_probe(arr + da, (size_t)len * 8)) return 0;
+    g_last_sllen = len;
     int c = 0;
     for (int i = 0; i < len; i++) {
         uintptr_t slot = mem_safe_ptr(arr + da + (uintptr_t)i * 8);
@@ -441,6 +468,26 @@ static int read_actor_skills(uintptr_t actor, SkillData *sd) {
     return c;
 }
 #endif
+
+// Append tmp block to log; freeze forever once over cap (early battle data
+// kept — overwrite mode deleted evidence after quit-to-menu, do NOT revert).
+static void sync_commit(const char *tmppath, const char *logpath) {
+    FILE *t = fopen(tmppath, "rb");
+    if (!t) return;
+    FILE *o = fopen(logpath, "a");
+    if (!o) { fclose(t); remove(tmppath); return; }
+    fseek(o, 0, SEEK_END);
+    long cur = ftell(o);
+    if (cur < 0 || (uint64_t)cur > (uint64_t)SYNC_LOG_CAP) {
+        fclose(t); fclose(o); remove(tmppath); return;
+    }
+    char buf[4096];
+    size_t n;
+    while ((n = fread(buf, 1, sizeof(buf), t)) > 0) fwrite(buf, 1, n, o);
+    fclose(t);
+    fclose(o);
+    remove(tmppath);
+}
 
 // ─── MAIN LOOP ───
 static void *reader_loop(void *arg) {
@@ -478,6 +525,7 @@ static void *reader_loop(void *arg) {
             if (vf) {
                 fprintf(vf, "V6START tick=%d base=0x%lx\n", tick, g_il2cpp_base);
                 v6_hunt(vf);
+                fprintf(vf, "SAVED str_actor=0x%lx\n", g_str_actor);
                 fclose(vf);
             }
             v6_done = true;
@@ -501,7 +549,7 @@ static void *reader_loop(void *arg) {
                         log_roots(r);
                         log_hypotheses(r);
                         fclose(r);
-                        rename(tmppath, logpath);
+                        sync_commit(tmppath, logpath);
                     }
                 }
 #endif
@@ -513,7 +561,10 @@ static void *reader_loop(void *arg) {
             idle_ticks = 0;
         }
 #ifndef RELEASE_BUILD
-        FILE *f = fopen(tmppath, "w"); // tmp + rename: crash mid-write never empties log
+        // H-block throttled to every 25 ticks (~5s battle / ~25s idle):
+        // at 5Hz full-rate, 512KB cap covers only ~50s. DO NOT unthrottle.
+        FILE *f = NULL;
+        if ((tick % 25) == 0) f = fopen(tmppath, "w"); // throttled: 512KB cap math
         if (f) {
             fprintf(f, "UL-1.64 base=0x%lx layout=%d tick=%d n=%d\n",
                 g_il2cpp_base, g_layout_list, tick, n);
@@ -525,7 +576,7 @@ static void *reader_loop(void *arg) {
                 SkillData skd;
                 int nsk = read_actor_skills(heroes[i].obj_ptr, &skd);
                 if (nsk > 0) {
-                    fprintf(f, "  SK n=%d rdy=", nsk);
+                    fprintf(f, "  SK n=%d slen=%d rdy=", nsk, g_last_sllen);
                     for (int k = 0; k < nsk; k++) fprintf(f, "%d", skd.ready[k]);
                     fprintf(f, " cd=");
                     for (int k = 0; k < nsk; k++)
@@ -534,7 +585,7 @@ static void *reader_loop(void *arg) {
                 }
             }
             fclose(f);
-            rename(tmppath, logpath);
+            sync_commit(tmppath, logpath);
         }
         if (alivepath[0] && (tick % 25) == 0) { // heartbeat in-battle too
             FILE *a = fopen(alivepath, "w");

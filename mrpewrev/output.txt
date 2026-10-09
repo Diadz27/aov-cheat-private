@@ -390,3 +390,11 @@ Tóm tắt: magic KHÔNG TỒN TẠI trong RAM. Nhánh magic-hunt đóng sổ. C
 [NEXT]: user ky rgctx -> 1 tran rank 5v5 -> gui sync_state.txt (CAN RG/H1A/FBB/SK)
   + v6.txt. RG eq=1 + H1A count>0 -> khoa neo Kyrios. FBB klass!=0 + obj>0 ->
   khoa heap-sweep. Tat ca 0 -> hoi Claude 1 cau.
+
+---
+[PHIEN]: buildmode-fulllog-01 - ngay 2026-10-07. Chot spec full-log + fix brace.
+[DA LAM]: sync_commit append+cap 512KB; H moi 25 tick; RGD/KG/SW/SAVED/SLEN;
+  BAT BLOCKER: if(f) trung 2 lan -> thieu 1 } (CI chac do) -> da xoa, verify
+  closes@604; audit ALL-CLEAR (nit: overshoot <=1 block, chap nhan).
+[NEXT]: commit+push -> CI xanh? -> tai zip -> repack final -> HOW final ->
+  1 tran CUOI (khong xin them) -> doc log theo bang -> khoa ban hoac hoi Claude.
